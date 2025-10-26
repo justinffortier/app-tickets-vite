@@ -1,7 +1,6 @@
 /* eslint-disable no-unreachable */
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import '@src/scss/style.scss';
-import UiKit from '@src/components/views/UiKit';
 import NotFound from '@src/components/views/NotFound';
 import Home from '@src/components/views/Home';
 import PublicRoutes from '@src/components/global/PublicRoutes';
@@ -21,7 +20,6 @@ function App() {
         <Routes>
           <Route element={<AppWrapper />}>
             <Route path="/" element={<Home />} />
-            <Route path="/ui-kit" element={<UiKit />} />
 
             <Route element={<PublicRoutes />}>
               <Route path="/embed/form/:formId" element={<EmbedPage />} />
