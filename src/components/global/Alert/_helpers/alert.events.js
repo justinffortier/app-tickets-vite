@@ -79,3 +79,16 @@ export const infoAlert = (message, type = 'toast') => { // type === 'toast || 'm
     notificationArray,
   });
 };
+
+export const showToast = (message, variant = 'info') => {
+  const notificationArray = $alert.value.notificationArray || [];
+  notificationArray.push({
+    id: Date.now(),
+    displayMessage: message,
+    displayType: 'toast',
+    variant,
+  });
+  $alert.update({
+    notificationArray,
+  });
+};

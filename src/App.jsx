@@ -8,6 +8,10 @@ import PublicRoutes from '@src/components/global/PublicRoutes';
 import PrivateRoutes from '@src/components/global/PrivateRoutes';
 import AppWrapper from './components/global/AppWrapper';
 import Alert from './components/global/Alert';
+import { Dashboard } from './components/views/Admin';
+import { EventsList, EventForm, EventDetail } from './components/views/Admin/Events';
+import { FormsList, FormBuilder, FormEmbed } from './components/views/Admin/Forms';
+import { EmbedPage } from './components/embed';
 
 function App() {
   return (
@@ -18,15 +22,24 @@ function App() {
           <Route element={<AppWrapper />}>
             <Route path="/" element={<Home />} />
             <Route path="/ui-kit" element={<UiKit />} />
-            <Route path="*" element={<NotFound />} />
+
             <Route element={<PublicRoutes />}>
-              {/* NOTE: public routes go here */}
-              <Route path="/public" element={<h1>Public Route</h1>} />
+              <Route path="/embed/form/:formId" element={<EmbedPage />} />
             </Route>
+
             <Route element={<PrivateRoutes />}>
-              {/* NOTE: private routes go here */}
-              <Route path="/private" element={<h1>Private Route</h1>} />
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/events" element={<EventsList />} />
+              <Route path="/admin/events/new" element={<EventForm />} />
+              <Route path="/admin/events/:id" element={<EventDetail />} />
+              <Route path="/admin/events/:id/edit" element={<EventForm />} />
+              <Route path="/admin/forms" element={<FormsList />} />
+              <Route path="/admin/forms/new" element={<FormBuilder />} />
+              <Route path="/admin/forms/:id/edit" element={<FormBuilder />} />
+              <Route path="/admin/forms/:id/embed" element={<FormEmbed />} />
             </Route>
+
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </Router>
