@@ -23,10 +23,10 @@ function App() {
 
             <Route element={<PublicRoutes />}>
               <Route path="/embed/form/:formId" element={<EmbedPage />} />
+              <Route path="/admin" element={<Dashboard />} />
             </Route>
 
             <Route element={<PrivateRoutes />}>
-              <Route path="/admin" element={<Dashboard />} />
               <Route path="/admin/events" element={<EventsList />} />
               <Route path="/admin/events/new" element={<EventForm />} />
               <Route path="/admin/events/:id" element={<EventDetail />} />
