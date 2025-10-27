@@ -27,9 +27,17 @@ export async function callEdgeFunction(functionName, options = {}) {
   };
 
   // Add auth token if available
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session?.access_token) {
-    requestHeaders['Authorization'] = `Bearer ${session.access_token}`;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      requestHeaders['Authorization'] = `Bearer ${session.access_token}`;
+    } else {
+      // If no session, use the anon key as Authorization for edge functions
+      requestHeaders['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+    }
+  } catch (error) {
+    // If there's no session, use anon key
+    requestHeaders['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
   }
 
   const config = {

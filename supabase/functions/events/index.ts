@@ -17,14 +17,25 @@ Deno.serve(async (req: Request) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
+
+    const clientOptions: any = {};
+    if (authHeader) {
+      clientOptions.global = {
+        headers: { Authorization: authHeader },
+      };
+    }
+
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+    }
+
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: authHeader ?? "" },
-        },
-      }
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY,
+      clientOptions
     );
 
     const { action, filters, id, data } = await req.json();
