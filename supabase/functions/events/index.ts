@@ -16,15 +16,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-
-    const clientOptions: any = {};
-    if (authHeader) {
-      clientOptions.global = {
-        headers: { Authorization: authHeader },
-      };
-    }
-
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -32,10 +23,10 @@ Deno.serve(async (req: Request) => {
       throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
     }
 
+    // Use service role key to bypass RLS policies
     const supabaseClient = createClient(
       SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY,
-      clientOptions
+      SUPABASE_SERVICE_ROLE_KEY
     );
 
     const { action, filters, id, data } = await req.json();
@@ -74,16 +65,11 @@ Deno.serve(async (req: Request) => {
       }
 
       case "create": {
-        const {
-          data: { user },
-        } = await supabaseClient.auth.getUser();
-
+        // created_by should be passed in the data from the client
+        // It should be the user's Supabase ID (from users table, not auth.users)
         const { data: event, error } = await supabaseClient
           .from("events")
-          .insert({
-            ...data,
-            created_by: user?.id,
-          })
+          .insert(data)
           .select()
           .single();
 

@@ -9,6 +9,7 @@ import formsAPI from '@src/api/forms.api';
 import eventsAPI from '@src/api/events.api';
 import Loader from '@src/components/global/Loader';
 import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
+import { $user } from '@src/signals';
 
 const FIELD_TYPES = [
   { value: 'text', label: 'Text' },
@@ -202,6 +203,11 @@ function FormBuilder() {
         await formsAPI.update(id, submitData);
         showToast('Form updated successfully', 'success');
       } else {
+        // Add created_by field when creating a new form
+        const userData = $user.value;
+        if (userData?.id) {
+          submitData.created_by = userData.id;
+        }
         await formsAPI.create(submitData);
         showToast('Form created successfully', 'success');
       }

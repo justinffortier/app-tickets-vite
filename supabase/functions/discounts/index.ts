@@ -16,19 +16,17 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const clientOptions: any = {};
-    if (authHeader) {
-      clientOptions.global = {
-        headers: { Authorization: authHeader },
-      };
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
     }
 
+    // Use service role key to bypass RLS policies
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      clientOptions
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY
     );
 
     const { action, eventId, id, code, data } = await req.json();

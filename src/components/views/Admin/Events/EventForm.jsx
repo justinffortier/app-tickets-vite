@@ -4,6 +4,7 @@ import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import eventsAPI from '@src/api/events.api';
 import Loader from '@src/components/global/Loader';
 import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
+import { $user } from '@src/signals';
 
 function EventForm() {
   const { id } = useParams();
@@ -74,6 +75,11 @@ function EventForm() {
         await eventsAPI.update(id, submitData);
         showToast('Event updated successfully', 'success');
       } else {
+        // Add created_by field when creating a new event
+        const userData = $user.value;
+        if (userData?.id) {
+          submitData.created_by = userData.id;
+        }
         await eventsAPI.create(submitData);
         showToast('Event created successfully', 'success');
       }
