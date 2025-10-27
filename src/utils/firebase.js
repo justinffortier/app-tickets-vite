@@ -15,7 +15,7 @@ const auth = firebase.auth();
 
 const getAuthForTenant = (tenantId) => {
   if (!tenantId) {
-    auth.tenantId = 'default';
+    auth.tenantId = null;
   } else {
     auth.tenantId = tenantId;
   }

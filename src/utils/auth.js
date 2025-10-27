@@ -7,14 +7,33 @@ import UsersApi from '@src/api/users.api';
 const tenantId = import.meta.env.VITE_APP_FIREBASE_TENANT_ID;
 const auth = getAuthForTenant(tenantId);
 
+const syncFirebaseUserToSupabase = async (firebaseUser) => {
+  try {
+    const existingUser = await UsersApi.getByFirebaseUid(firebaseUser.uid);
+
+    if (!existingUser) {
+      // Create new user in Supabase
+      await UsersApi.create({
+        email: firebaseUser.email,
+        first_name: firebaseUser.displayName?.split(' ')[0] || null,
+        last_name: firebaseUser.displayName?.split(' ').slice(1).join(' ') || null,
+        firebase_uid: firebaseUser.uid,
+      });
+    }
+  } catch (error) {
+    console.error('Error syncing Firebase user to Supabase:', error);
+  }
+};
+
 export const signIn = async (email, password) => {
   // await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-  await auth.signInWithEmailAndPassword(email, password);
+  const result = await auth.signInWithEmailAndPassword(email, password);
+  await syncFirebaseUserToSupabase(result.user);
 };
 
 export const signInWithGoogle = async () => {
-  const googleProvider = new firebase.auth.GoogleAuthProvider();
-  await auth.signInWithPopup(googleProvider);
+  const result = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  await syncFirebaseUserToSupabase(result.user);
 };
 
 export const signOut = async () => {
@@ -24,6 +43,7 @@ export const signOut = async () => {
 export const createNewUser = async (email, password) => {
   const res = await auth.createUserWithEmailAndPassword(email, password);
   await res.user.sendEmailVerification();
+  await syncFirebaseUserToSupabase(res.user);
   return res.user;
 };
 
@@ -56,23 +76,26 @@ export const handleFirebaseLogin = async (fbUser) => {
 };
 
 export const getCurrentAuthenticatedUser = async () => {
-  const authToken = await getFirebaseToken();
-  let user;
+  const firebaseUser = await currentUser();
+  let user = null;
 
-  if (authToken) {
-    user = await UsersApi.getFullUserWithToken();
-    $user.update(user[0]);
+  if (firebaseUser) {
+    // Sync user to Supabase
+    await syncFirebaseUserToSupabase(firebaseUser);
+
+    // Get user from Supabase
+    user = await UsersApi.getByFirebaseUid(firebaseUser.uid);
+
+    if (user) {
+      $user.update(user);
+    }
   }
-  return user[0];
+  return user;
 };
 
-export const handleFirebaseLogout = (setAlert) => {
+export const handleFirebaseLogout = () => {
   auth.signOut();
   $auth.reset();
   $global.reset();
   $user.reset();
-  setAlert({
-    message: 'Logged Out!',
-    variant: 'success',
-  });
 };

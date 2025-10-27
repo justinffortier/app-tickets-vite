@@ -1,16 +1,17 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { $auth } from '@fyclabs/tools-fyc-react/signals';
-import ContentWrapper from '../ContentWrapper';
+import { $global } from '@src/signals';
 
 const PublicRoutes = () => {
-  if ($auth.value.isSignedIn && !$auth.value.isLoading) {
-    return <Navigate to={`/?redirect=${window.location.pathname}`} />;
+  // If user is signed in, redirect auth pages to admin
+  // But allow embed pages (they don't need ContentWrapper)
+  if ($global.value.isSignedIn && !$global.value.isLoading) {
+    const path = window.location.pathname;
+    // Allow embed pages for authenticated users
+    if (!path.startsWith('/embed')) {
+      return <Navigate to="/admin" />;
+    }
   }
-  return (
-    <ContentWrapper>
-      <Outlet />
-    </ContentWrapper>
-  );
+  return <Outlet />;
 };
 
 export default PublicRoutes;

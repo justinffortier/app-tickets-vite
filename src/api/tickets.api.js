@@ -1,79 +1,34 @@
-import supabase from '@src/utils/supabase';
+import { edgeFunctionHelpers } from '@src/utils/edgeFunctions';
 
 export const ticketsAPI = {
   async getByEventId(eventId) {
-    const { data, error } = await supabase
-      .from('ticket_types')
-      .select('*')
-      .eq('event_id', eventId)
-      .order('created_at', { ascending: true });
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.tickets.getByEventId(eventId);
+    return result.data;
   },
 
   async getById(id) {
-    const { data, error } = await supabase
-      .from('ticket_types')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.tickets.getById(id);
+    return result.data;
   },
 
   async create(ticketData) {
-    const { data, error } = await supabase
-      .from('ticket_types')
-      .insert(ticketData)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.tickets.create(ticketData);
+    return result.data;
   },
 
   async update(id, ticketData) {
-    const { data, error } = await supabase
-      .from('ticket_types')
-      .update({
-        ...ticketData,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.tickets.update(id, ticketData);
+    return result.data;
   },
 
   async delete(id) {
-    const { error } = await supabase
-      .from('ticket_types')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await edgeFunctionHelpers.tickets.delete(id);
     return true;
   },
 
   async checkAvailability(ticketTypeId, quantity) {
-    const { data, error } = await supabase
-      .from('ticket_types')
-      .select('quantity, sold')
-      .eq('id', ticketTypeId)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) throw new Error('Ticket type not found');
-
-    const available = data.quantity - data.sold;
-    return {
-      available,
-      canPurchase: available >= quantity,
-    };
+    const result = await edgeFunctionHelpers.tickets.checkAvailability(ticketTypeId, quantity);
+    return result;
   },
 };
 

@@ -1,15 +1,16 @@
 /* eslint-disable implicit-arrow-linebreak */
-import { $auth } from '@fyclabs/tools-fyc-react/signals';
+import { $global } from '@src/signals';
 import { Container } from 'react-bootstrap';
 import Loader from '@src/components/global/Loader';
+import AdminNav from '@src/components/global/AdminNav';
 
 const ContentWrapper = ({ children, className, fluid }) => {
-  if ($auth.value?.isLoading) {
+  if ($global.value?.isLoading) {
     return (
       <div>
         <div className="min-vh-100 w-100 d-flex justify-content-center align-items-center flex-grow-1">
           <Loader
-            message={$auth.value?.isLoadingMessage ?? 'Loading...'}
+            message="Loading..."
             className="text-center"
           />
         </div>
@@ -18,6 +19,7 @@ const ContentWrapper = ({ children, className, fluid }) => {
   }
   return (
     <div>
+      <AdminNav />
       <Container fluid={!!fluid} className={className}>
         {children}
       </Container>

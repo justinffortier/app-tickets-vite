@@ -1,147 +1,35 @@
-import supabase from '@src/utils/supabase';
+import { edgeFunctionHelpers } from '@src/utils/edgeFunctions';
 
 export const ordersAPI = {
   async getAll(filters = {}) {
-    let query = supabase.from('orders').select('*, events(title), order_items(*, ticket_types(name))');
-
-    if (filters.event_id) {
-      query = query.eq('event_id', filters.event_id);
-    }
-
-    if (filters.status) {
-      query = query.eq('status', filters.status);
-    }
-
-    query = query.order('created_at', { ascending: false });
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.orders.getAll(filters);
+    return result.data;
   },
 
   async getById(id) {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*, events(title), order_items(*, ticket_types(name)), discount_codes(code, type, value)')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.orders.getById(id);
+    return result.data;
   },
 
   async create(orderData) {
-    const { items, ...order } = orderData;
-
-    const { data: newOrder, error: orderError } = await supabase
-      .from('orders')
-      .insert(order)
-      .select()
-      .single();
-
-    if (orderError) throw orderError;
-
-    if (items && items.length > 0) {
-      const orderItems = items.map((item) => ({
-        order_id: newOrder.id,
-        ticket_type_id: item.ticket_type_id,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        subtotal: item.quantity * item.unit_price,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-    }
-
-    return this.getById(newOrder.id);
+    const result = await edgeFunctionHelpers.orders.create(orderData);
+    return result.data;
   },
 
   async updateStatus(id, status, paymentIntentId = null) {
-    const updateData = {
-      status,
-      updated_at: new Date().toISOString(),
-    };
-
-    if (paymentIntentId) {
-      updateData.payment_intent_id = paymentIntentId;
-    }
-
-    const { data, error } = await supabase
-      .from('orders')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    if (status === 'PAID') {
-      await this.updateTicketInventory(id);
-    }
-
-    return data;
+    const result = await edgeFunctionHelpers.orders.updateStatus(id, status, paymentIntentId);
+    return result.data;
   },
 
   async updateTicketInventory(orderId) {
-    const { data: orderItems, error } = await supabase
-      .from('order_items')
-      .select('ticket_type_id, quantity')
-      .eq('order_id', orderId);
-
-    if (error) throw error;
-
-    for (const item of orderItems) {
-      const { error: updateError } = await supabase.rpc('increment_ticket_sold', {
-        ticket_id: item.ticket_type_id,
-        amount: item.quantity,
-      });
-
-      if (updateError) throw updateError;
-    }
+    // This is handled server-side in the edge function
+    // Keeping the method for backward compatibility
+    return true;
   },
 
   async calculateTotal(items, discountCodeId = null) {
-    let subtotal = 0;
-
-    for (const item of items) {
-      const { data: ticket } = await supabase
-        .from('ticket_types')
-        .select('price')
-        .eq('id', item.ticket_type_id)
-        .single();
-
-      subtotal += parseFloat(ticket.price) * item.quantity;
-    }
-
-    let discountAmount = 0;
-
-    if (discountCodeId) {
-      const { data: discount } = await supabase
-        .from('discount_codes')
-        .select('type, value')
-        .eq('id', discountCodeId)
-        .single();
-
-      if (discount) {
-        if (discount.type === 'PERCENT') {
-          discountAmount = (subtotal * parseFloat(discount.value)) / 100;
-        } else {
-          discountAmount = parseFloat(discount.value);
-        }
-      }
-    }
-
-    const total = Math.max(0, subtotal - discountAmount);
-
-    return {
-      subtotal: parseFloat(subtotal.toFixed(2)),
-      discount_amount: parseFloat(discountAmount.toFixed(2)),
-      total: parseFloat(total.toFixed(2)),
-    };
+    const result = await edgeFunctionHelpers.orders.calculateTotal(items, discountCodeId);
+    return result;
   },
 };
 

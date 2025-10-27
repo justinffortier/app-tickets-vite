@@ -11,6 +11,7 @@ import { Dashboard } from './components/views/Admin';
 import { EventsList, EventForm, EventDetail } from './components/views/Admin/Events';
 import { FormsList, FormBuilder, FormEmbed } from './components/views/Admin/Forms';
 import { EmbedPage } from './components/embed';
+import { Login, Signup, ForgotPassword } from './components/views/Auth';
 
 function App() {
   return (
@@ -22,11 +23,14 @@ function App() {
             <Route path="/" element={<Home />} />
 
             <Route element={<PublicRoutes />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/embed/form/:formId" element={<EmbedPage />} />
-              <Route path="/admin" element={<Dashboard />} />
             </Route>
 
             <Route element={<PrivateRoutes />}>
+              <Route path="/admin" element={<Dashboard />} />
               <Route path="/admin/events" element={<EventsList />} />
               <Route path="/admin/events/new" element={<EventForm />} />
               <Route path="/admin/events/:id" element={<EventDetail />} />

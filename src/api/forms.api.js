@@ -1,108 +1,49 @@
-import supabase from '@src/utils/supabase';
+import { edgeFunctionHelpers } from '@src/utils/edgeFunctions';
 
 export const formsAPI = {
   async getAll(filters = {}) {
-    let query = supabase.from('forms').select('*, events(title)');
-
-    if (filters.event_id) {
-      query = query.eq('event_id', filters.event_id);
-    }
-
-    if (filters.is_published !== undefined) {
-      query = query.eq('is_published', filters.is_published);
-    }
-
-    query = query.order('created_at', { ascending: false });
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.forms.getAll(filters);
+    return result.data;
   },
 
   async getById(id) {
-    const { data, error } = await supabase
-      .from('forms')
-      .select('*, events(title, id)')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.forms.getById(id);
+    return result.data;
   },
 
   async create(formData) {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const { data, error } = await supabase
-      .from('forms')
-      .insert({
-        ...formData,
-        created_by: user?.id,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.forms.create(formData);
+    return result.data;
   },
 
   async update(id, formData) {
-    const { data, error } = await supabase
-      .from('forms')
-      .update({
-        ...formData,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.forms.update(id, formData);
+    return result.data;
   },
 
   async delete(id) {
-    const { error } = await supabase
-      .from('forms')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await edgeFunctionHelpers.forms.delete(id);
     return true;
   },
 
   async publish(id) {
-    return this.update(id, { is_published: true });
+    const result = await edgeFunctionHelpers.forms.publish(id);
+    return result.data;
   },
 
   async unpublish(id) {
-    return this.update(id, { is_published: false });
+    const result = await edgeFunctionHelpers.forms.unpublish(id);
+    return result.data;
   },
 
   async submitForm(formId, responses, email = null) {
-    const { data, error } = await supabase
-      .from('form_submissions')
-      .insert({
-        form_id: formId,
-        responses,
-        email,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.forms.submitForm(formId, responses, email);
+    return result.data;
   },
 
   async getSubmissions(formId) {
-    const { data, error } = await supabase
-      .from('form_submissions')
-      .select('*, orders(*)')
-      .eq('form_id', formId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data;
+    const result = await edgeFunctionHelpers.forms.getSubmissions(formId);
+    return result.data;
   },
 };
 
