@@ -31,7 +31,7 @@ Deno.serve(async (req: Request) => {
       clientOptions
     );
 
-    const { action, filters, id, status, paymentIntentId, items, discountCodeId } =
+    const { action, filters, id, status, paymentIntentId, items, discountCodeId, data } =
       await req.json();
 
     let result;
@@ -220,4 +220,3 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
-
