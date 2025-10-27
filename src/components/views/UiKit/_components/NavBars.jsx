@@ -4,7 +4,7 @@ const NavBars = () => (
   <Row className="text-center" id="navbar">
     <Col sm={{ span: 6, offset: 3 }} className="p-0">
       <h2 className="text-decoration-underline">NavBar</h2>
-      <Navbar expand={false} className="bg-body-tertiary mb-3">
+      <Navbar expand={false} className="bg-body-tertiary mb-24">
         <Container fluid>
           <Navbar.Brand href="">Navbar Offcanvas</Navbar.Brand>
           <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-${false}`} />

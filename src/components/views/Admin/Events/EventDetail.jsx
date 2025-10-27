@@ -51,7 +51,7 @@ function EventDetail() {
 
   return (
     <Container fluid className="py-4">
-      <Row className="mb-4">
+      <Row className="mb-32">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center gap-3">
@@ -63,7 +63,7 @@ function EventDetail() {
                 <FontAwesomeIcon icon={faArrowLeft} />
               </Button>
               <div>
-                <h2 className="mb-1">{event.title}</h2>
+                <h2 className="mb-8">{event.title}</h2>
                 <div>{getStatusBadge(event.status)}</div>
               </div>
             </div>
@@ -77,15 +77,15 @@ function EventDetail() {
         </Col>
       </Row>
 
-      <Row className="mb-4">
+      <Row className="mb-32">
         <Col lg={8}>
-          <Card className="mb-4">
+          <Card className="mb-32">
             <Card.Body>
-              <h5 className="mb-3">Event Details</h5>
+              <h5 className="mb-24">Event Details</h5>
               {event.description && (
                 <p className="text-muted">{event.description}</p>
               )}
-              <Row className="mt-3">
+              <Row className="mb-24">
                 <Col md={6}>
                   <strong>Start:</strong> {format(new Date(event.start_date), 'PPpp')}
                 </Col>
@@ -94,19 +94,19 @@ function EventDetail() {
                 </Col>
               </Row>
               {event.location && (
-                <div className="mt-2">
+                <div className="mt-16">
                   <strong>Location:</strong> {event.location}
                 </div>
               )}
               {event.capacity && (
-                <div className="mt-2">
+                <div className="mt-16">
                   <strong>Capacity:</strong> {event.capacity}
                 </div>
               )}
             </Card.Body>
           </Card>
 
-          <Tabs defaultActiveKey="tickets" className="mb-3">
+          <Tabs defaultActiveKey="tickets" className="mb-24">
             <Tab eventKey="tickets" title="Tickets">
               <TicketsManager eventId={id} tickets={tickets} onUpdate={loadEventData} />
             </Tab>
@@ -129,12 +129,12 @@ function EventDetail() {
         <Col lg={4}>
           <Card>
             <Card.Body>
-              <h5 className="mb-3">Quick Stats</h5>
-              <div className="mb-3">
+              <h5 className="mb-24">Quick Stats</h5>
+              <div className="mb-24">
                 <div className="text-muted small">Total Tickets</div>
                 <div className="h4 mb-0">{tickets.length}</div>
               </div>
-              <div className="mb-3">
+              <div className="mb-24">
                 <div className="text-muted small">Tickets Sold</div>
                 <div className="h4 mb-0">
                   {tickets.reduce((sum, t) => sum + (t.sold || 0), 0)}

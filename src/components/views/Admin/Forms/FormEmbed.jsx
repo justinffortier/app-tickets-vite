@@ -43,7 +43,7 @@ function FormEmbed() {
 
   return (
     <Container fluid className="py-4">
-      <Row className="mb-4">
+      <Row className="mb-32">
         <Col>
           <div className="d-flex align-items-center gap-3">
             <Button
@@ -59,16 +59,16 @@ function FormEmbed() {
       </Row>
 
       {!form.is_published && (
-        <Alert variant="warning" className="mb-4">
+        <Alert variant="warning" className="mb-32">
           This form is not published. Publish it to make it available for embedding.
         </Alert>
       )}
 
       <Row>
         <Col lg={8}>
-          <Card className="mb-4">
+          <Card className="mb-32">
             <Card.Body>
-              <h5 className="mb-3">Direct Link</h5>
+              <h5 className="mb-24">Direct Link</h5>
               <p className="text-muted">Share this link directly or embed it in an iframe</p>
               <Form.Group>
                 <div className="input-group">
@@ -88,9 +88,9 @@ function FormEmbed() {
             </Card.Body>
           </Card>
 
-          <Card className="mb-4">
+          <Card className="mb-32">
             <Card.Body>
-              <h5 className="mb-3">Script Embed (Recommended)</h5>
+              <h5 className="mb-24">Script Embed (Recommended)</h5>
               <p className="text-muted">
                 Copy this code and paste it anywhere in your website where you want the form to appear
               </p>
@@ -101,7 +101,7 @@ function FormEmbed() {
                   value={scriptEmbed}
                   readOnly
                 />
-                <div className="mt-2">
+                <div className="mt-16">
                   <Button
                     variant="primary"
                     size="sm"
@@ -115,9 +115,9 @@ function FormEmbed() {
             </Card.Body>
           </Card>
 
-          <Card className="mb-4">
+          <Card className="mb-32">
             <Card.Body>
-              <h5 className="mb-3">iFrame Embed</h5>
+              <h5 className="mb-24">iFrame Embed</h5>
               <p className="text-muted">
                 Alternative method using an iframe (may have styling limitations)
               </p>
@@ -128,7 +128,7 @@ function FormEmbed() {
                   value={iframeEmbed}
                   readOnly
                 />
-                <div className="mt-2">
+                <div className="mt-16">
                   <Button
                     variant="primary"
                     size="sm"
@@ -144,7 +144,7 @@ function FormEmbed() {
 
           <Card>
             <Card.Body>
-              <h5 className="mb-3">React Component</h5>
+              <h5 className="mb-24">React Component</h5>
               <p className="text-muted">
                 For React applications, you can import and use the EventForm component
               </p>
@@ -165,7 +165,7 @@ function FormEmbed() {
         <Col lg={4}>
           <Card>
             <Card.Body>
-              <h5 className="mb-3">Configuration Options</h5>
+              <h5 className="mb-24">Configuration Options</h5>
               <p className="small text-muted">
                 You can customize the embedded form with these data attributes:
               </p>
@@ -174,7 +174,7 @@ function FormEmbed() {
                 <li><code>data-primary-color</code> - Custom color</li>
                 <li><code>data-success-url</code> - Redirect URL after submission</li>
               </ul>
-              <h6 className="mt-4 mb-2">Example:</h6>
+              <h6 className="mb-32 mb-16">Example:</h6>
               <pre className="bg-light p-2 rounded small">
                 <code>{`<script
   src="${window.location.origin}/embed.js"

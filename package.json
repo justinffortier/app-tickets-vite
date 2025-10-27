@@ -14,7 +14,8 @@
     "watch": "nodemon --watch .yalc --exec 'yarn dev-restart'",
     "deploy-functions": "supabase functions deploy anthropic-proxy",
     "deploy": "vite build && firebase deploy --only hosting",
-    "deploy:hosting": "firebase deploy --only hosting"
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:all": "supabase functions deploy && supabase db push && firebase deploy --only hosting"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.35",

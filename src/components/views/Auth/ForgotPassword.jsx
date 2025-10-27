@@ -62,24 +62,24 @@ const ForgotPassword = () => {
         <Col xs={12} md={6} lg={5} xl={4} className="mx-auto">
           <Card className="shadow">
             <Card.Body className="p-4">
-              <h2 className="text-center mb-4">Reset Password</h2>
+              <h2 className="text-center mb-32">Reset Password</h2>
 
               {emailSent && (
-                <Alert variant="success" className="mb-3">
+                <Alert variant="success" className="mb-24">
                   <strong>Email Sent!</strong>
-                  <p className="mb-0 mt-2 small">
+                  <p className="mb-0 mt-16 small">
                     We've sent a password reset link to your email address.
                     Please check your inbox and follow the instructions.
                   </p>
                 </Alert>
               )}
 
-              <p className="text-muted text-center mb-4">
+              <p className="text-muted text-center mb-32">
                 Enter your email address and we'll send you a link to reset your password.
               </p>
 
               <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Email</Form.Label>
                   <UniversalInput
                     type="email"
@@ -94,7 +94,7 @@ const ForgotPassword = () => {
                 <Button
                   variant="primary"
                   type="submit"
-                  className="w-100 mb-3"
+                  className="w-100 mb-24"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Sending...' : 'Send Reset Link'}

@@ -205,16 +205,24 @@ function FormBuilder() {
       } else {
         // Add created_by field when creating a new form
         const userData = $user.value;
-        if (userData?.id) {
-          submitData.created_by = userData.id;
+        if (!userData?.id) {
+          throw new Error('User not authenticated. Please log in and try again.');
         }
+
+        submitData.created_by = userData.id;
+
+        // Convert empty strings to null for UUID fields
+        if (submitData.event_id === '') {
+          submitData.event_id = null;
+        }
+
         await formsAPI.create(submitData);
         showToast('Form created successfully', 'success');
       }
 
       navigate('/admin/forms');
     } catch (error) {
-      showToast('Error saving form', 'error');
+      showToast(error.message || 'Error saving form', 'error');
     } finally {
       setLoading(false);
     }
@@ -227,7 +235,7 @@ function FormBuilder() {
   return (
     <DndProvider backend={HTML5Backend}>
       <Container fluid className="py-4">
-        <Row className="mb-4">
+        <Row className="mb-32">
           <Col>
             <div className="d-flex align-items-center gap-3">
               <Button
@@ -244,10 +252,10 @@ function FormBuilder() {
 
         <Row>
           <Col lg={4}>
-            <Card className="mb-4">
+            <Card className="mb-32">
               <Card.Body>
-                <h5 className="mb-3">Form Settings</h5>
-                <Form.Group className="mb-3">
+                <h5 className="mb-24">Form Settings</h5>
+                <Form.Group className="mb-24">
                   <Form.Label>Form Name *</Form.Label>
                   <Form.Control
                     type="text"
@@ -257,7 +265,7 @@ function FormBuilder() {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Description</Form.Label>
                   <Form.Control
                     as="textarea"
@@ -268,7 +276,7 @@ function FormBuilder() {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Linked Event</Form.Label>
                   <Form.Select
                     name="event_id"
@@ -297,8 +305,8 @@ function FormBuilder() {
 
             <Card>
               <Card.Body>
-                <h5 className="mb-3">Add Field</h5>
-                <Form.Group className="mb-3">
+                <h5 className="mb-24">Add Field</h5>
+                <Form.Group className="mb-24">
                   <Form.Label>Field Type</Form.Label>
                   <Form.Select
                     name="type"
@@ -313,7 +321,7 @@ function FormBuilder() {
                   </Form.Select>
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Label *</Form.Label>
                   <Form.Control
                     type="text"
@@ -323,7 +331,7 @@ function FormBuilder() {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Placeholder</Form.Label>
                   <Form.Control
                     type="text"
@@ -334,7 +342,7 @@ function FormBuilder() {
                 </Form.Group>
 
                 {needsOptions && (
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mb-24">
                     <Form.Label>Options (one per line)</Form.Label>
                     <Form.Control
                       as="textarea"
@@ -346,7 +354,7 @@ function FormBuilder() {
                   </Form.Group>
                 )}
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Check
                     type="checkbox"
                     name="required"
@@ -367,7 +375,7 @@ function FormBuilder() {
           <Col lg={8}>
             <Card>
               <Card.Body>
-                <h5 className="mb-3">Form Preview ({fields.length} fields)</h5>
+                <h5 className="mb-24">Form Preview ({fields.length} fields)</h5>
                 {fields.length === 0 ? (
                   <div className="text-center py-5 text-muted">
                     No fields added yet. Add fields using the panel on the left.

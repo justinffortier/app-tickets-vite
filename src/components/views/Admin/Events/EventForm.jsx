@@ -79,13 +79,15 @@ function EventForm() {
         const userData = $user.value;
         if (userData?.id) {
           submitData.created_by = userData.id;
+        } else {
+          throw new Error('User not authenticated. Please log in and try again.');
         }
         await eventsAPI.create(submitData);
         showToast('Event created successfully', 'success');
       }
       navigate('/admin/events');
     } catch (error) {
-      showToast(`Error ${id ? 'updating' : 'creating'} event`, 'error');
+      showToast(error.message || `Error ${id ? 'updating' : 'creating'} event`, 'error');
     } finally {
       setLoading(false);
     }
@@ -95,7 +97,7 @@ function EventForm() {
 
   return (
     <Container fluid className="py-4">
-      <Row className="mb-4">
+      <Row className="mb-32">
         <Col>
           <h2>{id ? 'Edit Event' : 'Create Event'}</h2>
         </Col>
@@ -106,7 +108,7 @@ function EventForm() {
           <Card>
             <Card.Body>
               <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Title *</Form.Label>
                   <Form.Control
                     type="text"
@@ -117,7 +119,7 @@ function EventForm() {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Description</Form.Label>
                   <Form.Control
                     as="textarea"
@@ -130,7 +132,7 @@ function EventForm() {
 
                 <Row>
                   <Col md={6}>
-                    <Form.Group className="mb-3">
+                    <Form.Group className="mb-24">
                       <Form.Label>Start Date *</Form.Label>
                       <Form.Control
                         type="datetime-local"
@@ -142,7 +144,7 @@ function EventForm() {
                     </Form.Group>
                   </Col>
                   <Col md={6}>
-                    <Form.Group className="mb-3">
+                    <Form.Group className="mb-24">
                       <Form.Label>End Date *</Form.Label>
                       <Form.Control
                         type="datetime-local"
@@ -155,7 +157,7 @@ function EventForm() {
                   </Col>
                 </Row>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Location</Form.Label>
                   <Form.Control
                     type="text"
@@ -165,7 +167,7 @@ function EventForm() {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Image URL</Form.Label>
                   <Form.Control
                     type="url"
@@ -176,7 +178,7 @@ function EventForm() {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Capacity</Form.Label>
                   <Form.Control
                     type="number"

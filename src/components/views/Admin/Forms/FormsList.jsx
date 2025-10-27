@@ -58,7 +58,7 @@ function FormsList() {
 
   return (
     <Container fluid className="py-4">
-      <Row className="mb-4">
+      <Row className="mb-32">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <h2>Forms</h2>
@@ -75,7 +75,7 @@ function FormsList() {
       {forms.length === 0 ? (
         <Card>
           <Card.Body className="text-center py-5">
-            <p className="text-muted mb-3">No forms yet</p>
+            <p className="text-muted mb-24">No forms yet</p>
             <Link to="/admin/forms/new">
               <Button variant="primary">Create Your First Form</Button>
             </Link>

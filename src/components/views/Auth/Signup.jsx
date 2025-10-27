@@ -121,12 +121,12 @@ const Signup = () => {
         <Col xs={12} md={6} lg={5} xl={4} className="mx-auto">
           <Card className="shadow">
             <Card.Body className="p-4">
-              <h2 className="text-center mb-4">Sign Up</h2>
+              <h2 className="text-center mb-32">Sign Up</h2>
 
               {showVerificationMessage && (
-                <Alert variant="info" className="mb-3">
+                <Alert variant="info" className="mb-24">
                   <strong>Email Verification Sent!</strong>
-                  <p className="mb-0 mt-2 small">
+                  <p className="mb-0 mt-16 small">
                     We've sent a verification email to your address.
                     Please verify your email before logging in.
                   </p>
@@ -134,7 +134,7 @@ const Signup = () => {
               )}
 
               <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Email</Form.Label>
                   <UniversalInput
                     type="email"
@@ -146,7 +146,7 @@ const Signup = () => {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Password</Form.Label>
                   <Password
                     name="password"
@@ -160,7 +160,7 @@ const Signup = () => {
                   </Form.Text>
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Confirm Password</Form.Label>
                   <Password
                     name="confirmPassword"
@@ -175,7 +175,7 @@ const Signup = () => {
                 <Button
                   variant="primary"
                   type="submit"
-                  className="w-100 mb-3"
+                  className="w-100 mb-24"
                   disabled={isLoading || showVerificationMessage}
                 >
                   {isLoading ? 'Creating Account...' : 'Sign Up'}
@@ -183,13 +183,13 @@ const Signup = () => {
 
                 {!showVerificationMessage && (
                   <>
-                    <div className="text-center mb-3">
+                    <div className="text-center mb-24">
                       <span className="text-muted">or</span>
                     </div>
 
                     <Button
                       variant="outline-secondary"
-                      className="w-100 mb-3"
+                      className="w-100 mb-24"
                       onClick={handleGoogleSignIn}
                       disabled={isLoading}
                     >

@@ -43,10 +43,10 @@ const Headers = () => (
     <Row className="text-center d-flex justify-content-center">
       {headers.reg.map((header) => (
         <Col key={`${header.type}-${header.size}-${header.fw}`} xs={6} md={3}>
-          <Card className="mb-4">
+          <Card className="mb-32">
             <Card.Body className="p-4">
               <div className={`${header.type} fw-${header.fw}`}>{`<${header.type} />`}</div>
-              <p className="mt-3 mb-0">size: {header.size}</p>
+              <p className="mb-24 mb-0">size: {header.size}</p>
               <p className="text-muted">font weight: {header.fw}</p>
             </Card.Body>
           </Card>
@@ -57,10 +57,10 @@ const Headers = () => (
     <Row className="text-center d-flex justify-content-center">
       {headers.med.map((header) => (
         <Col key={`${header.type}-${header.size}-${header.fw}`} xs={6} md={3}>
-          <Card className="mb-4">
+          <Card className="mb-32">
             <Card.Body className="p-4">
               <div className={`${header.type} fw-${header.fw}`}>{`<${header.type} />`}</div>
-              <p className="mt-3 mb-0">size: {header.size}</p>
+              <p className="mb-24 mb-0">size: {header.size}</p>
               <p className="text-muted">font weight: {header.fw}</p>
             </Card.Body>
           </Card>
@@ -71,10 +71,10 @@ const Headers = () => (
     <Row className="text-center d-flex justify-content-center">
       {headers.bold.map((header) => (
         <Col key={`${header.type}-${header.size}-${header.fw}`} xs={6} md={3}>
-          <Card className="mb-4">
+          <Card className="mb-32">
             <Card.Body className="p-4">
               <div className={`${header.type} fw-${header.fw}`}>{`<${header.type} />`}</div>
-              <p className="mt-3 mb-0">size: {header.size}</p>
+              <p className="mb-24 mb-0">size: {header.size}</p>
               <p className="text-muted">font weight: {header.fw}</p>
             </Card.Body>
           </Card>

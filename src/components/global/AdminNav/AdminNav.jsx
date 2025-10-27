@@ -30,7 +30,7 @@ const AdminNav = () => {
   };
 
   return (
-    <Navbar bg="light" expand="lg" className="mb-4 border-bottom">
+    <Navbar bg="light" expand="lg" className="mb-32 border-bottom">
       <Container fluid>
         <Navbar.Brand as={Link} to="/admin">
           Ticketing Admin

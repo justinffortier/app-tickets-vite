@@ -124,7 +124,7 @@ function DiscountsManager({ eventId }) {
     <>
       <Card>
         <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex justify-content-between align-items-center mb-24">
             <h5 className="mb-0">Discount Codes</h5>
             <Button size="sm" variant="primary" onClick={() => handleOpenModal()}>
               <FontAwesomeIcon icon={faPlus} className="me-2" />
@@ -210,7 +210,7 @@ function DiscountsManager({ eventId }) {
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-24">
               <Form.Label>Code *</Form.Label>
               <Form.Control
                 type="text"
@@ -227,7 +227,7 @@ function DiscountsManager({ eventId }) {
 
             <Row>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Type *</Form.Label>
                   <Form.Select
                     name="type"
@@ -241,7 +241,7 @@ function DiscountsManager({ eventId }) {
                 </Form.Group>
               </Col>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Value *</Form.Label>
                   <Form.Control
                     type="number"
@@ -256,7 +256,7 @@ function DiscountsManager({ eventId }) {
               </Col>
             </Row>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-24">
               <Form.Label>Max Uses</Form.Label>
               <Form.Control
                 type="number"
@@ -270,7 +270,7 @@ function DiscountsManager({ eventId }) {
               </Form.Text>
             </Form.Group>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-24">
               <Form.Label>Expires At</Form.Label>
               <Form.Control
                 type="datetime-local"
@@ -283,7 +283,7 @@ function DiscountsManager({ eventId }) {
               </Form.Text>
             </Form.Group>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-24">
               <Form.Check
                 type="checkbox"
                 name="is_active"

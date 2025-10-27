@@ -44,19 +44,19 @@ function Dashboard() {
 
   return (
     <Container fluid className="py-4">
-      <Row className="mb-4">
+      <Row className="mb-32">
         <Col>
           <h2>Dashboard</h2>
           <p className="text-muted">Headless Ticketing Platform</p>
         </Col>
       </Row>
 
-      <Row className="mb-4">
+      <Row className="mb-32">
         <Col md={3}>
           <Card className="text-center">
             <Card.Body>
-              <FontAwesomeIcon icon={faCalendar} size="2x" className="text-primary mb-3" />
-              <h3 className="mb-1">{stats.events}</h3>
+              <FontAwesomeIcon icon={faCalendar} size="2x" className="text-primary mb-24" />
+              <h3 className="mb-8">{stats.events}</h3>
               <p className="text-muted mb-0">Events</p>
             </Card.Body>
           </Card>
@@ -64,8 +64,8 @@ function Dashboard() {
         <Col md={3}>
           <Card className="text-center">
             <Card.Body>
-              <FontAwesomeIcon icon={faFileAlt} size="2x" className="text-success mb-3" />
-              <h3 className="mb-1">{stats.forms}</h3>
+              <FontAwesomeIcon icon={faFileAlt} size="2x" className="text-success mb-24" />
+              <h3 className="mb-8">{stats.forms}</h3>
               <p className="text-muted mb-0">Forms</p>
             </Card.Body>
           </Card>
@@ -73,8 +73,8 @@ function Dashboard() {
         <Col md={3}>
           <Card className="text-center">
             <Card.Body>
-              <FontAwesomeIcon icon={faShoppingCart} size="2x" className="text-info mb-3" />
-              <h3 className="mb-1">{stats.orders}</h3>
+              <FontAwesomeIcon icon={faShoppingCart} size="2x" className="text-info mb-24" />
+              <h3 className="mb-8">{stats.orders}</h3>
               <p className="text-muted mb-0">Orders</p>
             </Card.Body>
           </Card>
@@ -82,8 +82,8 @@ function Dashboard() {
         <Col md={3}>
           <Card className="text-center">
             <Card.Body>
-              <FontAwesomeIcon icon={faTicket} size="2x" className="text-warning mb-3" />
-              <h3 className="mb-1">${stats.revenue.toFixed(2)}</h3>
+              <FontAwesomeIcon icon={faTicket} size="2x" className="text-warning mb-24" />
+              <h3 className="mb-8">${stats.revenue.toFixed(2)}</h3>
               <p className="text-muted mb-0">Revenue</p>
             </Card.Body>
           </Card>
@@ -91,10 +91,10 @@ function Dashboard() {
       </Row>
 
       <Row>
-        <Col md={6} className="mb-4">
+        <Col md={6} className="mb-32">
           <Card>
             <Card.Body>
-              <h5 className="mb-3">Quick Actions</h5>
+              <h5 className="mb-24">Quick Actions</h5>
               <div className="d-flex flex-column gap-2">
                 <Link to="/admin/events/new">
                   <Button variant="outline-primary" className="w-100">
@@ -116,15 +116,15 @@ function Dashboard() {
           </Card>
         </Col>
 
-        <Col md={6} className="mb-4">
+        <Col md={6} className="mb-32">
           <Card>
             <Card.Body>
-              <h5 className="mb-3">Getting Started</h5>
+              <h5 className="mb-24">Getting Started</h5>
               <ol className="mb-0">
-                <li className="mb-2">Create your first event</li>
-                <li className="mb-2">Add ticket types and pricing</li>
-                <li className="mb-2">Build a custom registration form</li>
-                <li className="mb-2">Publish and get your embed code</li>
+                <li className="mb-16">Create your first event</li>
+                <li className="mb-16">Add ticket types and pricing</li>
+                <li className="mb-16">Build a custom registration form</li>
+                <li className="mb-16">Publish and get your embed code</li>
                 <li>Start selling tickets!</li>
               </ol>
             </Card.Body>

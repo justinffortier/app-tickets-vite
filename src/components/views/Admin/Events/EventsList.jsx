@@ -68,7 +68,7 @@ function EventsList() {
 
   return (
     <Container fluid className="py-4">
-      <Row className="mb-4">
+      <Row className="mb-32">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <h2>Events</h2>
@@ -85,7 +85,7 @@ function EventsList() {
       {events.length === 0 ? (
         <Card>
           <Card.Body className="text-center py-5">
-            <p className="text-muted mb-3">No events yet</p>
+            <p className="text-muted mb-24">No events yet</p>
             <Link to="/admin/events/new">
               <Button variant="primary">Create Your First Event</Button>
             </Link>

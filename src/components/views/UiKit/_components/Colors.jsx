@@ -18,10 +18,10 @@ const Colors = () => (
     <h1 className="text-decoration-underline mb-24">Colors</h1>
     {colors.map((color) => (
       <Col key={color.name} xs={6} md={3}>
-        <Card className="mb-4">
+        <Card className="mb-32">
           <Card.Body className="p-4">
             <div className="rounded" style={{ backgroundColor: color.hex, height: '100px' }} />
-            <p className="mt-3 mb-0">{color.name}</p>
+            <p className="mb-24 mb-0">{color.name}</p>
             <p className="text-muted">{color.hex}</p>
           </Card.Body>
         </Card>

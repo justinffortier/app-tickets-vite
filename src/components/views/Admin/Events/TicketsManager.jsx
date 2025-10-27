@@ -95,7 +95,7 @@ function TicketsManager({ eventId, tickets, onUpdate }) {
     <>
       <Card>
         <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex justify-content-between align-items-center mb-24">
             <h5 className="mb-0">Ticket Types</h5>
             <Button size="sm" variant="primary" onClick={() => handleOpenModal()}>
               <FontAwesomeIcon icon={faPlus} className="me-2" />
@@ -166,7 +166,7 @@ function TicketsManager({ eventId, tickets, onUpdate }) {
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-24">
               <Form.Label>Name *</Form.Label>
               <Form.Control
                 type="text"
@@ -177,7 +177,7 @@ function TicketsManager({ eventId, tickets, onUpdate }) {
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-24">
               <Form.Label>Description</Form.Label>
               <Form.Control
                 as="textarea"
@@ -190,7 +190,7 @@ function TicketsManager({ eventId, tickets, onUpdate }) {
 
             <Row>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Price *</Form.Label>
                   <Form.Control
                     type="number"
@@ -204,7 +204,7 @@ function TicketsManager({ eventId, tickets, onUpdate }) {
                 </Form.Group>
               </Col>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Quantity *</Form.Label>
                   <Form.Control
                     type="number"
@@ -220,7 +220,7 @@ function TicketsManager({ eventId, tickets, onUpdate }) {
 
             <Row>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Sales Start *</Form.Label>
                   <Form.Control
                     type="datetime-local"
@@ -232,7 +232,7 @@ function TicketsManager({ eventId, tickets, onUpdate }) {
                 </Form.Group>
               </Col>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Sales End *</Form.Label>
                   <Form.Control
                     type="datetime-local"

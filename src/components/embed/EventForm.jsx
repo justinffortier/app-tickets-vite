@@ -195,7 +195,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
     switch (field.type) {
       case 'textarea':
         return (
-          <Form.Group key={index} className="mb-3">
+          <Form.Group key={index} className="mb-24">
             <Form.Label>
               {field.label} {field.required && <span className="text-danger">*</span>}
             </Form.Label>
@@ -212,7 +212,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
 
       case 'select':
         return (
-          <Form.Group key={index} className="mb-3">
+          <Form.Group key={index} className="mb-24">
             <Form.Label>
               {field.label} {field.required && <span className="text-danger">*</span>}
             </Form.Label>
@@ -233,7 +233,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
 
       case 'checkbox':
         return (
-          <Form.Group key={index} className="mb-3">
+          <Form.Group key={index} className="mb-24">
             <Form.Check
               type="checkbox"
               label={field.label}
@@ -246,7 +246,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
 
       case 'radio':
         return (
-          <Form.Group key={index} className="mb-3">
+          <Form.Group key={index} className="mb-24">
             <Form.Label>
               {field.label} {field.required && <span className="text-danger">*</span>}
             </Form.Label>
@@ -267,7 +267,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
 
       default:
         return (
-          <Form.Group key={index} className="mb-3">
+          <Form.Group key={index} className="mb-24">
             <Form.Label>
               {field.label} {field.required && <span className="text-danger">*</span>}
             </Form.Label>
@@ -289,7 +289,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
     <Card className={`event-form-embed ${theme}`}>
       <Card.Body>
         {form && (
-          <div className="mb-4">
+          <div className="mb-32">
             <h3>{form.name}</h3>
             {form.description && <p className="text-muted">{form.description}</p>}
           </div>
@@ -298,7 +298,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
         {error && <Alert variant="danger">{error}</Alert>}
 
         <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-24">
             <Form.Label>Email *</Form.Label>
             <Form.Control
               type="email"
@@ -309,7 +309,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
             />
           </Form.Group>
 
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-24">
             <Form.Label>Name</Form.Label>
             <Form.Control
               type="text"
@@ -322,16 +322,16 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
           {form?.schema?.map((field, index) => renderField(field, index))}
 
           {tickets.length > 0 && (
-            <div className="mb-4">
-              <h5 className="mb-3">Select Tickets</h5>
+            <div className="mb-32">
+              <h5 className="mb-24">Select Tickets</h5>
               {tickets.map((ticket) => {
                 const available = ticket.quantity - (ticket.sold || 0);
                 return (
-                  <Card key={ticket.id} className="mb-3">
+                  <Card key={ticket.id} className="mb-24">
                     <Card.Body>
                       <Row className="align-items-center">
                         <Col md={6}>
-                          <h6 className="mb-1">{ticket.name}</h6>
+                          <h6 className="mb-8">{ticket.name}</h6>
                           {ticket.description && (
                             <p className="text-muted small mb-0">{ticket.description}</p>
                           )}
@@ -358,7 +358,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
                 );
               })}
 
-              <div className="mb-3">
+              <div className="mb-24">
                 <Form.Label>Discount Code</Form.Label>
                 <div className="input-group">
                   <Form.Control
@@ -381,12 +381,12 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
               {totals.subtotal > 0 && (
                 <Card className="bg-light">
                   <Card.Body>
-                    <div className="d-flex justify-content-between mb-2">
+                    <div className="d-flex justify-content-between mb-16">
                       <span>Subtotal:</span>
                       <strong>${totals.subtotal.toFixed(2)}</strong>
                     </div>
                     {totals.discount_amount > 0 && (
-                      <div className="d-flex justify-content-between mb-2 text-success">
+                      <div className="d-flex justify-content-between mb-16 text-success">
                         <span>Discount:</span>
                         <strong>-${totals.discount_amount.toFixed(2)}</strong>
                       </div>

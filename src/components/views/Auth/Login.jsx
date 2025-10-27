@@ -76,10 +76,10 @@ const Login = () => {
         <Col xs={12} md={6} lg={5} xl={4} className="mx-auto">
           <Card className="shadow">
             <Card.Body className="p-4">
-              <h2 className="text-center mb-4">Login</h2>
+              <h2 className="text-center mb-32">Login</h2>
 
               <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Email</Form.Label>
                   <UniversalInput
                     type="email"
@@ -91,7 +91,7 @@ const Login = () => {
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-24">
                   <Form.Label>Password</Form.Label>
                   <Password
                     name="password"
@@ -102,7 +102,7 @@ const Login = () => {
                   />
                 </Form.Group>
 
-                <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex justify-content-between align-items-center mb-24">
                   <Link to="/forgot-password" className="text-decoration-none small">
                     Forgot Password?
                   </Link>
@@ -111,19 +111,19 @@ const Login = () => {
                 <Button
                   variant="primary"
                   type="submit"
-                  className="w-100 mb-3"
+                  className="w-100 mb-24"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
 
-                <div className="text-center mb-3">
+                <div className="text-center mb-24">
                   <span className="text-muted">or</span>
                 </div>
 
                 <Button
                   variant="outline-secondary"
-                  className="w-100 mb-3"
+                  className="w-100 mb-24"
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
                 >

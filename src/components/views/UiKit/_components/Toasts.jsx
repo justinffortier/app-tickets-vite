@@ -4,12 +4,12 @@ import { $viewUiKit } from '../_helpers/uikit.consts';
 const Toasts = () => (
   <Row className="text-center mt-48" id="toasts">
     <h2 className="text-decoration-underline">Toasts</h2>
-    <Col md={6} className="mb-2">
+    <Col md={6} className="mb-16">
       <Button
         onClick={() => $viewUiKit.update({
           activeModal: 'showA',
         })}
-        className="mb-2"
+        className="mb-16"
       >
         Toggle Toast <strong>with</strong> Animation
       </Button>
@@ -21,12 +21,12 @@ const Toasts = () => (
         <Toast.Body>Woohoo, you&apos;re reading this text in a Toast!</Toast.Body>
       </Toast>
     </Col>
-    <Col md={6} className="mb-2">
+    <Col md={6} className="mb-16">
       <Button
         onClick={() => $viewUiKit.update({
           activeModal: 'showB',
         })}
-        className="mb-2"
+        className="mb-16"
       >
         Toggle Toast <strong>without</strong> Animation
       </Button>
