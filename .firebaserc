@@ -1,15 +1,15 @@
 {
   "projects": {
-    "default": "{PROJECTID}"
+    "default": "fractal-tickets"
   },
   "targets": {
-    "{PROJECTID}": {
+    "fractal-tickets": {
       "hosting": {
         "prod": [
-          "{PROJECTID}"
+          "fractal-tickets"
         ],
         "qa": [
-          "qa-{PROJECTID}"
+          "qa-fractal-tickets"
         ]
       }
     }
