@@ -35,11 +35,15 @@ function getCurrBreakpoint(newInnerWidth) {
 
 const useWindowSize = () => {
   const { windowSize } = $windowSize.value;
+
+  // Stable callback that doesn't depend on windowSize to prevent recreation
   const handleResize = useCallback(() => {
     const breakPoint = getCurrBreakpoint(window.innerWidth);
-    if (breakPoint === windowSize.breakPoint) {
+    // Get current value from signal instead of closure
+    const currentWindowSize = $windowSize.value.windowSize;
+    if (breakPoint === currentWindowSize.breakPoint) {
       $windowSize.update({
-        windowSize,
+        windowSize: currentWindowSize,
       });
     } else {
       $windowSize.update({
@@ -49,7 +53,7 @@ const useWindowSize = () => {
         },
       });
     }
-  }, [windowSize]);
+  }, []); // Empty dependency array - stable reference
 
   const isBreakpointUp = useCallback((breakPointName) => {
     if (!windowSize.breakPoint) return false;
