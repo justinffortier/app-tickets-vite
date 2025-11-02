@@ -1,193 +1,30 @@
-import { useState, useEffect } from 'react';
 import { Card, Form, Button, Row, Col, Alert } from 'react-bootstrap';
-import formsAPI from '@src/api/forms.api';
-import ticketsAPI from '@src/api/tickets.api';
-import ordersAPI from '@src/api/orders.api';
-import discountsAPI from '@src/api/discounts.api';
+import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
+import { $embed } from '@src/signals';
 import Loader from '@src/components/global/Loader';
+import UniversalInput from '@src/components/global/Inputs/UniversalInput';
+import {
+  loadFormData,
+  handleFieldChange,
+  handleTicketChange,
+  handleApplyDiscount,
+  handleSubmit,
+  updateDiscountCode,
+} from './_helpers/eventForm.events';
 
 function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
-  const [form, setForm] = useState(null);
-  const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [selectedTickets, setSelectedTickets] = useState({});
-  const [discountCode, setDiscountCode] = useState('');
-  const [appliedDiscount, setAppliedDiscount] = useState(null);
-  const [totals, setTotals] = useState({ subtotal: 0, discount_amount: 0, total: 0 });
+  const { form } = $embed.value;
+  const { tickets } = $embed.value;
+  const { isLoading } = $embed.value;
+  const { error, formData, selectedTickets, discountCode, appliedDiscount, totals, isFormValid } = $embed.value;
 
-  useEffect(() => {
-    loadFormData();
+  useEffectAsync(() => {
+    document.body.className = '';
+  }, []);
+
+  useEffectAsync(async () => {
+    await loadFormData(formId, eventId);
   }, [formId, eventId]);
-
-  useEffect(() => {
-    calculateTotals();
-  }, [selectedTickets, appliedDiscount]);
-
-  const loadFormData = async () => {
-    try {
-      setLoading(true);
-      if (formId) {
-        const formData = await formsAPI.getById(formId);
-        setForm(formData);
-        if (formData.event_id) {
-          const ticketsData = await ticketsAPI.getByEventId(formData.event_id);
-          setTickets(ticketsData);
-        }
-      } else if (eventId) {
-        const ticketsData = await ticketsAPI.getByEventId(eventId);
-        setTickets(ticketsData);
-      }
-    } catch (err) {
-      setError('Error loading form');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateTotals = () => {
-    let subtotal = 0;
-    Object.entries(selectedTickets).forEach(([ticketId, quantity]) => {
-      if (quantity > 0) {
-        const ticket = tickets.find((t) => t.id === ticketId);
-        if (ticket) {
-          subtotal += parseFloat(ticket.price) * quantity;
-        }
-      }
-    });
-
-    let discountAmount = 0;
-    if (appliedDiscount) {
-      if (appliedDiscount.type === 'PERCENT') {
-        discountAmount = (subtotal * parseFloat(appliedDiscount.value)) / 100;
-      } else {
-        discountAmount = parseFloat(appliedDiscount.value);
-      }
-    }
-
-    const total = Math.max(0, subtotal - discountAmount);
-
-    setTotals({
-      subtotal: parseFloat(subtotal.toFixed(2)),
-      discount_amount: parseFloat(discountAmount.toFixed(2)),
-      total: parseFloat(total.toFixed(2)),
-    });
-  };
-
-  const handleFieldChange = (fieldId, value) => {
-    setFormData((prev) => ({ ...prev, [fieldId]: value }));
-  };
-
-  const handleTicketChange = (ticketId, quantity) => {
-    setSelectedTickets((prev) => ({
-      ...prev,
-      [ticketId]: parseInt(quantity, 10) || 0,
-    }));
-  };
-
-  const handleApplyDiscount = async () => {
-    if (!discountCode) return;
-
-    try {
-      const result = await discountsAPI.validateCode(discountCode, form?.event_id || eventId);
-      if (result.valid) {
-        setAppliedDiscount(result.discount);
-        setError(null);
-      } else {
-        setError(result.error);
-        setAppliedDiscount(null);
-      }
-    } catch (err) {
-      setError('Error validating discount code');
-    }
-  };
-
-  const validateForm = () => {
-    if (form?.schema) {
-      for (const field of form.schema) {
-        if (field.required && !formData[field.label]) {
-          return `${field.label} is required`;
-        }
-      }
-    }
-
-    const hasTickets = Object.values(selectedTickets).some((qty) => qty > 0);
-    if (tickets.length > 0 && !hasTickets) {
-      return 'Please select at least one ticket';
-    }
-
-    if (!formData.email) {
-      return 'Email is required';
-    }
-
-    return null;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      let submissionId = null;
-
-      if (form) {
-        const submission = await formsAPI.submitForm(form.id, formData, formData.email);
-        submissionId = submission.id;
-      }
-
-      const hasTickets = Object.values(selectedTickets).some((qty) => qty > 0);
-
-      if (hasTickets) {
-        const orderItems = Object.entries(selectedTickets)
-          .filter(([, quantity]) => quantity > 0)
-          .map(([ticketId, quantity]) => {
-            const ticket = tickets.find((t) => t.id === ticketId);
-            return {
-              ticket_type_id: ticketId,
-              quantity,
-              unit_price: parseFloat(ticket.price),
-            };
-          });
-
-        const orderData = {
-          event_id: form?.event_id || eventId,
-          form_submission_id: submissionId,
-          discount_code_id: appliedDiscount?.id || null,
-          subtotal: totals.subtotal,
-          discount_amount: totals.discount_amount,
-          total: totals.total,
-          status: 'PENDING',
-          customer_email: formData.email,
-          customer_name: formData.name || null,
-          items: orderItems,
-        };
-
-        const order = await ordersAPI.create(orderData);
-
-        if (onSubmitSuccess) {
-          onSubmitSuccess({ order, submission: submissionId });
-        }
-      } else {
-        if (onSubmitSuccess) {
-          onSubmitSuccess({ submission: submissionId });
-        }
-      }
-    } catch (err) {
-      setError('Error submitting form. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const renderField = (field, index) => {
     const value = formData[field.label] || '';
@@ -199,12 +36,13 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
             <Form.Label>
               {field.label} {field.required && <span className="text-danger">*</span>}
             </Form.Label>
-            <Form.Control
+            <UniversalInput
               as="textarea"
               rows={3}
+              name={`field_${index}`}
               placeholder={field.placeholder}
               value={value}
-              onChange={(e) => handleFieldChange(field.label, e.target.value)}
+              customOnChange={(e) => handleFieldChange(field.label, e.target.value)}
               required={field.required}
             />
           </Form.Group>
@@ -216,9 +54,11 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
             <Form.Label>
               {field.label} {field.required && <span className="text-danger">*</span>}
             </Form.Label>
-            <Form.Select
+            <UniversalInput
+              as="select"
+              name={`field_${index}`}
               value={value}
-              onChange={(e) => handleFieldChange(field.label, e.target.value)}
+              customOnChange={(e) => handleFieldChange(field.label, e.target.value)}
               required={field.required}
             >
               <option value="">Select...</option>
@@ -227,18 +67,19 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
                   {option}
                 </option>
               ))}
-            </Form.Select>
+            </UniversalInput>
           </Form.Group>
         );
 
       case 'checkbox':
         return (
           <Form.Group key={index} className="mb-24">
-            <Form.Check
+            <UniversalInput
               type="checkbox"
+              name={`field_${index}`}
               label={field.label}
               checked={!!value}
-              onChange={(e) => handleFieldChange(field.label, e.target.checked)}
+              customOnChange={(e) => handleFieldChange(field.label, e.target.checked)}
               required={field.required}
             />
           </Form.Group>
@@ -271,11 +112,12 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
             <Form.Label>
               {field.label} {field.required && <span className="text-danger">*</span>}
             </Form.Label>
-            <Form.Control
+            <UniversalInput
               type={field.type}
+              name={`field_${index}`}
               placeholder={field.placeholder}
               value={value}
-              onChange={(e) => handleFieldChange(field.label, e.target.value)}
+              customOnChange={(e) => handleFieldChange(field.label, e.target.value)}
               required={field.required}
             />
           </Form.Group>
@@ -283,39 +125,41 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
     }
   };
 
-  if (loading) return <Loader />;
+  if (isLoading) return <Loader />;
 
   return (
-    <Card className={`event-form-embed ${theme}`}>
+    <Card className={`event-form-embed ${theme} border-0`}>
       <Card.Body>
         {form && (
           <div className="mb-32">
-            <h3>{form.name}</h3>
-            {form.description && <p className="text-muted">{form.description}</p>}
+            {form.show_title !== false && <h3>{form.name}</h3>}
+            {form.show_description !== false && form.description && <p className="text-muted">{form.description}</p>}
           </div>
         )}
 
         {error && <Alert variant="danger">{error}</Alert>}
 
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={(e) => handleSubmit(e, formId, eventId, onSubmitSuccess)}>
           <Form.Group className="mb-24">
             <Form.Label>Email *</Form.Label>
-            <Form.Control
+            <UniversalInput
               type="email"
+              name="email"
               placeholder="your@email.com"
               value={formData.email || ''}
-              onChange={(e) => handleFieldChange('email', e.target.value)}
+              customOnChange={(e) => handleFieldChange('email', e.target.value)}
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-24">
             <Form.Label>Name</Form.Label>
-            <Form.Control
+            <UniversalInput
               type="text"
+              name="name"
               placeholder="Your name"
               value={formData.name || ''}
-              onChange={(e) => handleFieldChange('name', e.target.value)}
+              customOnChange={(e) => handleFieldChange('name', e.target.value)}
             />
           </Form.Group>
 
@@ -327,7 +171,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
               {tickets.map((ticket) => {
                 const available = ticket.quantity - (ticket.sold || 0);
                 return (
-                  <Card key={ticket.id} className="mb-24">
+                  <Card key={ticket.id} className="mb-24 border-0 shadow-none bg-transparent">
                     <Card.Body>
                       <Row className="align-items-center">
                         <Col md={6}>
@@ -335,7 +179,10 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
                           {ticket.description && (
                             <p className="text-muted small mb-0">{ticket.description}</p>
                           )}
-                          <strong className="text-primary">
+                          {ticket.benefits && (
+                            <p className="text-muted small mb-0">{ticket.benefits}</p>
+                          )}
+                          <strong>
                             ${parseFloat(ticket.price).toFixed(2)}
                           </strong>
                         </Col>
@@ -343,12 +190,13 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
                           {available > 0 ? `${available} available` : 'Sold out'}
                         </Col>
                         <Col md={3}>
-                          <Form.Control
+                          <UniversalInput
                             type="number"
+                            name={`ticket_${ticket.id}`}
                             min="0"
                             max={available}
                             value={selectedTickets[ticket.id] || 0}
-                            onChange={(e) => handleTicketChange(ticket.id, e.target.value)}
+                            customOnChange={(e) => handleTicketChange(ticket.id, e.target.value)}
                             disabled={available === 0}
                           />
                         </Col>
@@ -361,13 +209,14 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
               <div className="mb-24">
                 <Form.Label>Discount Code</Form.Label>
                 <div className="input-group">
-                  <Form.Control
+                  <UniversalInput
                     type="text"
+                    name="discountCode"
                     placeholder="Enter code"
                     value={discountCode}
-                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    customOnChange={(e) => updateDiscountCode(e.target.value.toUpperCase())}
                   />
-                  <Button variant="outline-secondary" onClick={handleApplyDiscount}>
+                  <Button variant="outline-secondary" onClick={() => handleApplyDiscount(formId, eventId)}>
                     Apply
                   </Button>
                 </div>
@@ -379,7 +228,7 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
               </div>
 
               {totals.subtotal > 0 && (
-                <Card className="bg-light">
+                <Card className="bg-transparent">
                   <Card.Body>
                     <div className="d-flex justify-content-between mb-16">
                       <span>Subtotal:</span>
@@ -403,12 +252,12 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
 
           <Button
             type="submit"
-            variant="primary"
+            variant="dark"
             size="lg"
             className="w-100"
-            disabled={submitting}
+            disabled={isLoading || !isFormValid}
           >
-            {submitting ? 'Submitting...' : tickets.length > 0 ? 'Proceed to Payment' : 'Submit'}
+            {isLoading ? 'Submitting...' : 'Proceed to Payment'}
           </Button>
         </Form>
       </Card.Body>

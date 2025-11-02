@@ -12,7 +12,8 @@
     "clean-cache": "rm -rf node_modules/.vite",
     "dev-restart": "yalc update && yarn clean-cache",
     "watch": "nodemon --watch .yalc --exec 'yarn dev-restart'",
-    "deploy-functions": "supabase functions deploy anthropic-proxy",
+    "deploy-functions": "supabase functions deploy",
+    "migrate": "supabase db push",
     "deploy": "vite build && firebase deploy --only hosting",
     "deploy:hosting": "firebase deploy --only hosting",
     "deploy:all": "supabase functions deploy && supabase db push && firebase deploy --only hosting"

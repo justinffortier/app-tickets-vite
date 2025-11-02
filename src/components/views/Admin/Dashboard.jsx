@@ -1,46 +1,17 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendar, faTicket, faFileAlt, faShoppingCart } from '@fortawesome/free-solid-svg-icons';
-import eventsAPI from '@src/api/events.api';
-import formsAPI from '@src/api/forms.api';
-import ordersAPI from '@src/api/orders.api';
+import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
+import { $dashboard } from '@src/signals';
+import { loadStats } from './_helpers/dashboard.events';
 
 function Dashboard() {
-  const [stats, setStats] = useState({
-    events: 0,
-    forms: 0,
-    orders: 0,
-    revenue: 0,
-  });
+  const { stats } = $dashboard.value;
 
-  useEffect(() => {
-    loadStats();
+  useEffectAsync(async () => {
+    await loadStats();
   }, []);
-
-  const loadStats = async () => {
-    try {
-      const [events, forms, orders] = await Promise.all([
-        eventsAPI.getAll(),
-        formsAPI.getAll(),
-        ordersAPI.getAll(),
-      ]);
-
-      const revenue = orders
-        .filter((o) => o.status === 'PAID')
-        .reduce((sum, o) => sum + parseFloat(o.total), 0);
-
-      setStats({
-        events: events.length,
-        forms: forms.length,
-        orders: orders.length,
-        revenue,
-      });
-    } catch (error) {
-      console.error('Error loading stats:', error);
-    }
-  };
 
   return (
     <Container fluid className="py-4">

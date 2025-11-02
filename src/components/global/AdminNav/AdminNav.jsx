@@ -30,10 +30,10 @@ const AdminNav = () => {
   };
 
   return (
-    <Navbar bg="light" expand="lg" className="mb-32 border-bottom">
+    <Navbar bg="grey-900" expand="lg" className="mb-32 border-bottom">
       <Container fluid>
         <Navbar.Brand as={Link} to="/admin">
-          Ticketing Admin
+          <img src="/logo-white.svg" alt="Logo" className="me-2" />
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="admin-navbar-nav" />
         <Navbar.Collapse id="admin-navbar-nav">
@@ -43,9 +43,6 @@ const AdminNav = () => {
             </Nav.Link>
             <Nav.Link as={Link} to="/admin/events">
               Events
-            </Nav.Link>
-            <Nav.Link as={Link} to="/admin/forms">
-              Forms
             </Nav.Link>
           </Nav>
           <Nav>
@@ -69,4 +66,3 @@ const AdminNav = () => {
 };
 
 export default AdminNav;
-

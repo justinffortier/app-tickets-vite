@@ -1,0 +1,86 @@
+import { Signal } from '@fyclabs/tools-fyc-react/signals';
+import eventsAPI from '@src/api/events.api';
+import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
+import { $user } from '@src/signals';
+
+export const $eventForm = Signal({
+  title: '',
+  description: '',
+  start_date: '',
+  end_date: '',
+  location: '',
+  image_url: '',
+  capacity: '',
+  status: 'DRAFT',
+});
+
+export const loadEvent = async (id) => {
+  try {
+    $eventForm.loadingStart();
+    const data = await eventsAPI.getById(id);
+    $eventForm.update({
+      title: data.title || '',
+      description: data.description || '',
+      start_date: data.start_date ? new Date(data.start_date).toISOString().slice(0, 16) : '',
+      end_date: data.end_date ? new Date(data.end_date).toISOString().slice(0, 16) : '',
+      location: data.location || '',
+      image_url: data.image_url || '',
+      capacity: data.capacity || '',
+      status: data.status || 'DRAFT',
+    });
+  } catch (error) {
+    showToast('Error loading event', 'error');
+  } finally {
+    $eventForm.loadingEnd();
+  }
+};
+
+export const handleChange = (e) => {
+  const { name, value } = e.target;
+  $eventForm.update({ [name]: value });
+};
+
+export const handleSubmit = async (e, id, navigate) => {
+  e.preventDefault();
+
+  const formData = $eventForm.value;
+
+  if (!formData.title || !formData.start_date || !formData.end_date) {
+    showToast('Please fill in all required fields', 'error');
+    return;
+  }
+
+  try {
+    $eventForm.loadingStart();
+    const submitData = {
+      title: formData.title,
+      description: formData.description,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+      location: formData.location,
+      image_url: formData.image_url,
+      capacity: formData.capacity ? parseInt(formData.capacity, 10) : null,
+      status: formData.status,
+    };
+
+    if (id) {
+      await eventsAPI.update(id, submitData);
+      showToast('Event updated successfully', 'success');
+    } else {
+      // Add created_by field when creating a new event
+      const userData = $user.value;
+      if (userData?.id) {
+        submitData.created_by = userData.id;
+      } else {
+        throw new Error('User not authenticated. Please log in and try again.');
+      }
+      await eventsAPI.create(submitData);
+      showToast('Event created successfully', 'success');
+    }
+    navigate('/admin/events');
+  } catch (error) {
+    showToast(error.message || `Error ${id ? 'updating' : 'creating'} event`, 'error');
+  } finally {
+    $eventForm.loadingEnd();
+  }
+};

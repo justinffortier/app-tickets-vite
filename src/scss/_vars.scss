@@ -87,7 +87,6 @@ $light-400:  #d7e1e4;
 $light-500:  #c5d2d6;
 $light:      $light-100;
 
-// Dark Shades
 $dark-50:   #BDDBDE;
 $dark-100:  #ABABAB;
 $dark-200:  #858586;
@@ -114,6 +113,7 @@ $grey:      $grey-500;
 $transparent: transparent;
 $white: white;
 $black: black;
+$muted: $grey-200;
 
 $theme-colors: (
   // Primary Shades
@@ -203,7 +203,6 @@ $theme-colors: (
   "light-400": $light-400,
   "light-500": $light-500,
 
-  // Dark Shades
   "dark": $dark,
   "dark-50": $dark-50,
   "dark-100": $dark-100,
@@ -232,7 +231,8 @@ $theme-colors: (
   // Other
   "transparent": $transparent,
   "white": $white,
-  "black": $black
+  "black": $black,
+  "muted": $muted,
 );
 
 
@@ -275,6 +275,7 @@ $spacers: map-merge(
     5: 40px
   )
 );
+
 
 $grid-breakpoints: (
   xs: 0,

@@ -1,70 +1,83 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Badge, Table } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Button, Badge, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faEdit, faTrash, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { format } from 'date-fns';
-import eventsAPI from '@src/api/events.api';
-import Loader from '@src/components/global/Loader';
-import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
+import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
+import { $events, $view, $filter } from '@src/signals';
+import SignalTable from '@src/components/global/SignalTable';
+import { loadEvents, handleDelete, handlePublish, getStatusBadge } from './_helpers/eventsList.events';
 
 function EventsList() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const events = $events.value.list;
 
-  useEffect(() => {
-    loadEvents();
+  useEffectAsync(async () => {
+    await loadEvents();
   }, []);
 
-  const loadEvents = async () => {
-    try {
-      setLoading(true);
-      const data = await eventsAPI.getAll();
-      setEvents(data);
-    } catch (error) {
-      showToast('Error loading events', 'error');
-    } finally {
-      setLoading(false);
-    }
+  // Define table headers
+  const headers = [
+    { key: 'title', value: 'Title', sortKey: 'title' },
+    { key: 'date', value: 'Date', sortKey: 'start_date' },
+    { key: 'location', value: 'Location', sortKey: 'location' },
+    { key: 'status', value: 'Status', sortKey: 'status' },
+    { key: 'actions', value: 'Actions' },
+  ];
+
+  // Transform events data to table rows
+  const rows = events.map((event) => ({
+    id: event.id,
+    title: () => <strong>{event.title}</strong>,
+    date: () => format(new Date(event.start_date), 'MMM d, yyyy'),
+    location: event.location || '-',
+    status: () => {
+      const badge = getStatusBadge(event.status);
+      return (
+        <Badge bg={badge.variant}>
+          <span className={`text-${badge.variant}-900`}>{badge.text}</span>
+        </Badge>
+      );
+    },
+    actions: () => (
+      <Dropdown>
+        <Dropdown.Toggle
+          variant="link"
+          size="sm"
+          className="text-white"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <FontAwesomeIcon icon={faEllipsisV} />
+        </Dropdown.Toggle>
+
+        <Dropdown.Menu>
+          <Dropdown.Item
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/events/${event.id}`);
+            }}
+          >
+            Manage Event
+          </Dropdown.Item>
+          <Dropdown.Item onClick={(e) => handlePublish(e, event.id, event.status)}>
+            {event.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
+          </Dropdown.Item>
+          <Dropdown.Divider />
+          <Dropdown.Item
+            className="text-danger"
+            onClick={(e) => handleDelete(e, event.id)}
+          >
+            Delete
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
+    ),
+  }));
+
+  // Handle row click
+  const handleRowClick = (row) => {
+    navigate(`/admin/events/${row.id}`);
   };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
-
-    try {
-      await eventsAPI.delete(id);
-      showToast('Event deleted successfully', 'success');
-      loadEvents();
-    } catch (error) {
-      showToast('Error deleting event', 'error');
-    }
-  };
-
-  const handlePublish = async (id, currentStatus) => {
-    try {
-      if (currentStatus === 'PUBLISHED') {
-        await eventsAPI.unpublish(id);
-        showToast('Event unpublished', 'success');
-      } else {
-        await eventsAPI.publish(id);
-        showToast('Event published successfully', 'success');
-      }
-      loadEvents();
-    } catch (error) {
-      showToast('Error updating event status', 'error');
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    const variants = {
-      DRAFT: 'secondary',
-      PUBLISHED: 'success',
-      CANCELLED: 'danger',
-    };
-    return <Badge bg={variants[status] || 'secondary'}>{status}</Badge>;
-  };
-
-  if (loading) return <Loader />;
 
   return (
     <Container fluid className="py-4">
@@ -82,7 +95,7 @@ function EventsList() {
         </Col>
       </Row>
 
-      {events.length === 0 ? (
+      {events.length === 0 && !$view.value.isTableLoading ? (
         <Card>
           <Card.Body className="text-center py-5">
             <p className="text-muted mb-24">No events yet</p>
@@ -94,59 +107,19 @@ function EventsList() {
       ) : (
         <Card>
           <Card.Body>
-            <Table responsive hover>
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Date</th>
-                  <th>Location</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {events.map((event) => (
-                  <tr key={event.id}>
-                    <td>
-                      <strong>{event.title}</strong>
-                    </td>
-                    <td>
-                      {format(new Date(event.start_date), 'MMM d, yyyy')}
-                    </td>
-                    <td>{event.location || '-'}</td>
-                    <td>{getStatusBadge(event.status)}</td>
-                    <td>
-                      <div className="d-flex gap-2">
-                        <Link to={`/admin/events/${event.id}`}>
-                          <Button size="sm" variant="outline-primary">
-                            <FontAwesomeIcon icon={faEye} />
-                          </Button>
-                        </Link>
-                        <Link to={`/admin/events/${event.id}/edit`}>
-                          <Button size="sm" variant="outline-secondary">
-                            <FontAwesomeIcon icon={faEdit} />
-                          </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          variant={event.status === 'PUBLISHED' ? 'outline-warning' : 'outline-success'}
-                          onClick={() => handlePublish(event.id, event.status)}
-                        >
-                          {event.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline-danger"
-                          onClick={() => handleDelete(event.id)}
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            <SignalTable
+              $filter={$filter}
+              $view={$view}
+              headers={headers}
+              rows={rows}
+              onRowClick={handleRowClick}
+              hasPagination
+              itemsPerPageAmount={10}
+              totalCount={events.length}
+              currentPageItemsCount={rows.length}
+              currentPage={$filter.value.page || 1}
+              paginationMaxButtonAmount={5}
+            />
           </Card.Body>
         </Card>
       )}

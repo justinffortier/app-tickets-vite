@@ -1,60 +1,11 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Form, Alert } from 'react-bootstrap';
 import UniversalInput from '@src/components/global/Inputs/UniversalInput';
-import { sendPasswordResetEmail } from '@src/utils/auth';
-import { $alert } from '@src/signals';
-import { Signal } from '@fyclabs/tools-fyc-react/signals';
-
-const $forgotPasswordForm = Signal({ email: '' });
+import { $forgotPasswordForm, $forgotPasswordUI, handleSubmit } from './_helpers/forgotPassword.events';
 
 const ForgotPassword = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { email } = $forgotPasswordForm.value;
-
-      if (!email) {
-        $alert.update({
-          message: 'Please enter your email address',
-          variant: 'danger',
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      await sendPasswordResetEmail(email);
-
-      setEmailSent(true);
-      $alert.update({
-        message: 'Password reset email sent! Please check your inbox.',
-        variant: 'success',
-      });
-
-      // Clear the form
-      $forgotPasswordForm.reset();
-    } catch (error) {
-      let errorMessage = 'Failed to send password reset email. Please try again.';
-
-      if (error.code === 'auth/user-not-found') {
-        errorMessage = 'No account found with this email address.';
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'Invalid email address.';
-      }
-
-      $alert.update({
-        message: errorMessage,
-        variant: 'danger',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { isLoading } = $forgotPasswordUI.value;
+  const { emailSent } = $forgotPasswordUI.value;
 
   return (
     <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
@@ -115,4 +66,3 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
-

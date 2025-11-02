@@ -1,74 +1,16 @@
-import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import UniversalInput from '@src/components/global/Inputs/UniversalInput';
 import Password from '@src/components/global/Inputs/Password';
-import { signIn, signInWithGoogle } from '@src/utils/auth';
-import { $alert } from '@src/signals';
-import { Signal } from '@fyclabs/tools-fyc-react/signals';
-
-const $loginForm = Signal({ email: '', password: '' });
+import { $loginForm, $loginUI, handleSubmit, handleGoogleSignIn } from './_helpers/login.events';
 
 const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading } = $loginUI.value;
   const redirectPath = searchParams.get('redirect') || '/admin';
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { email, password } = $loginForm.value;
-
-      if (!email || !password) {
-        $alert.update({
-          message: 'Please enter both email and password',
-          variant: 'danger',
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      await signIn(email, password);
-
-      $alert.update({
-        message: 'Successfully logged in!',
-        variant: 'success',
-      });
-
-      navigate(redirectPath);
-    } catch (error) {
-      $alert.update({
-        message: error.message || 'Failed to log in. Please check your credentials.',
-        variant: 'danger',
-      });
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      await signInWithGoogle();
-
-      $alert.update({
-        message: 'Successfully logged in with Google!',
-        variant: 'success',
-      });
-
-      navigate(redirectPath);
-    } catch (error) {
-      $alert.update({
-        message: error.message || 'Failed to log in with Google.',
-        variant: 'danger',
-      });
-      setIsLoading(false);
-    }
-  };
 
   return (
     <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
@@ -78,7 +20,7 @@ const Login = () => {
             <Card.Body className="p-4">
               <h2 className="text-center mb-32">Login</h2>
 
-              <Form onSubmit={handleSubmit}>
+              <Form onSubmit={(e) => handleSubmit(e, navigate, redirectPath)}>
                 <Form.Group className="mb-24">
                   <Form.Label>Email</Form.Label>
                   <UniversalInput
@@ -124,7 +66,7 @@ const Login = () => {
                 <Button
                   variant="outline-secondary"
                   className="w-100 mb-24"
-                  onClick={handleGoogleSignIn}
+                  onClick={() => handleGoogleSignIn(navigate, redirectPath)}
                   disabled={isLoading}
                 >
                   <FontAwesomeIcon icon={faGoogle} className="me-2" />
@@ -147,4 +89,3 @@ const Login = () => {
 };
 
 export default Login;
-

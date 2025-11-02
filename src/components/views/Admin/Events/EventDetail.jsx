@@ -1,49 +1,35 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Badge, Tab, Tabs } from 'react-bootstrap';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Button, Badge, Tab, Tabs, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { format } from 'date-fns';
-import eventsAPI from '@src/api/events.api';
-import ticketsAPI from '@src/api/tickets.api';
+import { faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
+import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
+import { $events, $tickets } from '@src/signals';
 import Loader from '@src/components/global/Loader';
 import TicketsManager from './TicketsManager';
 import DiscountsManager from './DiscountsManager';
+import FormsManager from './FormsManager';
+import SalesManager from './SalesManager';
+import { loadEventData, getStatusBadge } from './_helpers/eventDetail.events';
+import { $eventForm, loadEvent, handleChange, handleSubmit } from './_helpers/eventForm.events';
 
 function EventDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [event, setEvent] = useState(null);
-  const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const event = $events.value.current;
+  const tickets = $tickets.value.list;
+  const loading = $events.value.isLoading;
+  const formData = $eventForm.value;
+  const formLoading = $eventForm.value.isLoading;
 
-  useEffect(() => {
-    loadEventData();
+  useEffectAsync(async () => {
+    await loadEventData(id);
+    await loadEvent(id);
   }, [id]);
 
-  const loadEventData = async () => {
-    try {
-      setLoading(true);
-      const [eventData, ticketsData] = await Promise.all([
-        eventsAPI.getById(id),
-        ticketsAPI.getByEventId(id),
-      ]);
-      setEvent(eventData);
-      setTickets(ticketsData);
-    } catch (error) {
-      console.error('Error loading event:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    const variants = {
-      DRAFT: 'secondary',
-      PUBLISHED: 'success',
-      CANCELLED: 'danger',
-    };
-    return <Badge bg={variants[status] || 'secondary'}>{status}</Badge>;
+  const handleEventSubmit = async (e) => {
+    e.preventDefault();
+    await handleSubmit(e, id, () => { });
+    await loadEventData(id);
   };
 
   if (loading) return <Loader />;
@@ -53,75 +39,140 @@ function EventDetail() {
     <Container fluid className="py-4">
       <Row className="mb-32">
         <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <div className="d-flex align-items-center gap-3">
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                onClick={() => navigate('/admin/events')}
-              >
-                <FontAwesomeIcon icon={faArrowLeft} />
-              </Button>
+          <div className="d-flex align-items-center gap-3">
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={() => navigate('/admin/events')}
+            >
+              <FontAwesomeIcon icon={faArrowLeft} />
+            </Button>
+            <div>
+              <h2 className="mb-8">{event.title}</h2>
               <div>
-                <h2 className="mb-8">{event.title}</h2>
-                <div>{getStatusBadge(event.status)}</div>
+                <Badge bg={getStatusBadge(event.status).variant}>
+                  {getStatusBadge(event.status).text}
+                </Badge>
               </div>
             </div>
-            <Link to={`/admin/events/${id}/edit`}>
-              <Button variant="primary">
-                <FontAwesomeIcon icon={faEdit} className="me-2" />
-                Edit Event
-              </Button>
-            </Link>
           </div>
         </Col>
       </Row>
 
-      <Row className="mb-32">
+      <Row>
         <Col lg={8}>
-          <Card className="mb-32">
-            <Card.Body>
-              <h5 className="mb-24">Event Details</h5>
-              {event.description && (
-                <p className="text-muted">{event.description}</p>
-              )}
-              <Row className="mb-24">
-                <Col md={6}>
-                  <strong>Start:</strong> {format(new Date(event.start_date), 'PPpp')}
-                </Col>
-                <Col md={6}>
-                  <strong>End:</strong> {format(new Date(event.end_date), 'PPpp')}
-                </Col>
-              </Row>
-              {event.location && (
-                <div className="mt-16">
-                  <strong>Location:</strong> {event.location}
-                </div>
-              )}
-              {event.capacity && (
-                <div className="mt-16">
-                  <strong>Capacity:</strong> {event.capacity}
-                </div>
-              )}
-            </Card.Body>
-          </Card>
+          <Tabs defaultActiveKey="basic" className="mb-24">
+            <Tab eventKey="basic" title="Basic Info">
+              <Card>
+                <Card.Body>
+                  <Form onSubmit={handleEventSubmit}>
+                    <Form.Group className="mb-24">
+                      <Form.Label>Title *</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
 
-          <Tabs defaultActiveKey="tickets" className="mb-24">
-            <Tab eventKey="tickets" title="Tickets">
-              <TicketsManager eventId={id} tickets={tickets} onUpdate={loadEventData} />
+                    <Form.Group className="mb-24">
+                      <Form.Label>Description</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={4}
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                      />
+                    </Form.Group>
+
+                    <Row>
+                      <Col md={6}>
+                        <Form.Group className="mb-24">
+                          <Form.Label>Start Date *</Form.Label>
+                          <Form.Control
+                            type="datetime-local"
+                            name="start_date"
+                            value={formData.start_date}
+                            onChange={handleChange}
+                            required
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-24">
+                          <Form.Label>End Date *</Form.Label>
+                          <Form.Control
+                            type="datetime-local"
+                            name="end_date"
+                            value={formData.end_date}
+                            onChange={handleChange}
+                            required
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <Form.Group className="mb-24">
+                      <Form.Label>Location</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleChange}
+                      />
+                    </Form.Group>
+
+                    <Form.Group className="mb-24">
+                      <Form.Label>Image URL</Form.Label>
+                      <Form.Control
+                        type="url"
+                        name="image_url"
+                        value={formData.image_url}
+                        onChange={handleChange}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </Form.Group>
+
+                    <Form.Group className="mb-24">
+                      <Form.Label>Capacity</Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="capacity"
+                        value={formData.capacity}
+                        onChange={handleChange}
+                        min="1"
+                      />
+                      <Form.Text className="text-muted">
+                        Leave empty for unlimited capacity
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Button type="submit" variant="primary" disabled={formLoading}>
+                      <FontAwesomeIcon icon={faSave} className="me-2" />
+                      {formLoading ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </Form>
+                </Card.Body>
+              </Card>
             </Tab>
+
+            <Tab eventKey="tickets" title="Tickets">
+              <TicketsManager eventId={id} tickets={tickets} onUpdate={() => loadEventData(id)} />
+            </Tab>
+
+            <Tab eventKey="forms" title="Forms">
+              <FormsManager eventId={id} tickets={tickets} onUpdate={() => loadEventData(id)} />
+            </Tab>
+
             <Tab eventKey="discounts" title="Discount Codes">
               <DiscountsManager eventId={id} />
             </Tab>
-            <Tab eventKey="forms" title="Forms">
-              <Card>
-                <Card.Body className="text-center py-5">
-                  <p className="text-muted">Form builder coming soon</p>
-                  <Link to={`/admin/forms/new?event=${id}`}>
-                    <Button variant="primary">Create Form</Button>
-                  </Link>
-                </Card.Body>
-              </Card>
+
+            <Tab eventKey="sales" title="Sales">
+              <SalesManager eventId={id} />
             </Tab>
           </Tabs>
         </Col>

@@ -1,119 +1,15 @@
-import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Form, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import UniversalInput from '@src/components/global/Inputs/UniversalInput';
 import Password from '@src/components/global/Inputs/Password';
-import { createNewUser, signInWithGoogle } from '@src/utils/auth';
-import { $alert } from '@src/signals';
-import { Signal } from '@fyclabs/tools-fyc-react/signals';
-
-const $signupForm = Signal({
-  email: '',
-  password: '',
-  confirmPassword: ''
-});
+import { $signupForm, $signupUI, handleSubmit, handleGoogleSignIn } from './_helpers/signup.events';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
-
-  const validateForm = () => {
-    const { email, password, confirmPassword } = $signupForm.value;
-
-    if (!email || !password || !confirmPassword) {
-      $alert.update({
-        message: 'Please fill in all fields',
-        variant: 'danger',
-      });
-      return false;
-    }
-
-    if (password.length < 6) {
-      $alert.update({
-        message: 'Password must be at least 6 characters long',
-        variant: 'danger',
-      });
-      return false;
-    }
-
-    if (password !== confirmPassword) {
-      $alert.update({
-        message: 'Passwords do not match',
-        variant: 'danger',
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { email, password } = $signupForm.value;
-      await createNewUser(email, password);
-
-      setShowVerificationMessage(true);
-      $alert.update({
-        message: 'Account created successfully! Please check your email to verify your account.',
-        variant: 'success',
-      });
-
-      // Clear the form
-      $signupForm.reset();
-
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
-    } catch (error) {
-      let errorMessage = 'Failed to create account. Please try again.';
-
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email is already registered. Please login instead.';
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'Invalid email address.';
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = 'Password is too weak. Please use a stronger password.';
-      }
-
-      $alert.update({
-        message: errorMessage,
-        variant: 'danger',
-      });
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      await signInWithGoogle();
-
-      $alert.update({
-        message: 'Successfully signed up with Google!',
-        variant: 'success',
-      });
-
-      navigate('/admin');
-    } catch (error) {
-      $alert.update({
-        message: error.message || 'Failed to sign up with Google.',
-        variant: 'danger',
-      });
-      setIsLoading(false);
-    }
-  };
+  const { isLoading } = $signupUI.value;
+  const { showVerificationMessage } = $signupUI.value;
 
   return (
     <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
@@ -190,7 +86,7 @@ const Signup = () => {
                     <Button
                       variant="outline-secondary"
                       className="w-100 mb-24"
-                      onClick={handleGoogleSignIn}
+                      onClick={() => handleGoogleSignIn(navigate)}
                       disabled={isLoading}
                     >
                       <FontAwesomeIcon icon={faGoogle} className="me-2" />
@@ -215,4 +111,3 @@ const Signup = () => {
 };
 
 export default Signup;
-

@@ -1,97 +1,23 @@
-import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
-import eventsAPI from '@src/api/events.api';
+import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import Loader from '@src/components/global/Loader';
-import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
-import { $user } from '@src/signals';
+import UniversalInput from '@src/components/global/Inputs/UniversalInput';
+import { $eventForm, loadEvent, handleSubmit } from './_helpers/eventForm.events';
 
 function EventForm() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    start_date: '',
-    end_date: '',
-    location: '',
-    image_url: '',
-    capacity: '',
-    status: 'DRAFT',
-  });
+  const formData = $eventForm.value;
+  const loading = $eventForm.value.isLoading;
 
-  useEffect(() => {
+  useEffectAsync(async () => {
     if (id) {
-      loadEvent();
+      await loadEvent(id);
+    } else {
+      $eventForm.reset();
     }
   }, [id]);
-
-  const loadEvent = async () => {
-    try {
-      setLoading(true);
-      const data = await eventsAPI.getById(id);
-      setFormData({
-        title: data.title || '',
-        description: data.description || '',
-        start_date: data.start_date ? new Date(data.start_date).toISOString().slice(0, 16) : '',
-        end_date: data.end_date ? new Date(data.end_date).toISOString().slice(0, 16) : '',
-        location: data.location || '',
-        image_url: data.image_url || '',
-        capacity: data.capacity || '',
-        status: data.status || 'DRAFT',
-      });
-    } catch (error) {
-      showToast('Error loading event', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.title || !formData.start_date || !formData.end_date) {
-      showToast('Please fill in all required fields', 'error');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const submitData = {
-        ...formData,
-        capacity: formData.capacity ? parseInt(formData.capacity, 10) : null,
-      };
-
-      if (id) {
-        await eventsAPI.update(id, submitData);
-        showToast('Event updated successfully', 'success');
-      } else {
-        // Add created_by field when creating a new event
-        const userData = $user.value;
-        if (userData?.id) {
-          submitData.created_by = userData.id;
-        } else {
-          throw new Error('User not authenticated. Please log in and try again.');
-        }
-        await eventsAPI.create(submitData);
-        showToast('Event created successfully', 'success');
-      }
-      navigate('/admin/events');
-    } catch (error) {
-      showToast(error.message || `Error ${id ? 'updating' : 'creating'} event`, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading && id) return <Loader />;
 
@@ -107,26 +33,24 @@ function EventForm() {
         <Col lg={8}>
           <Card>
             <Card.Body>
-              <Form onSubmit={handleSubmit}>
+              <Form onSubmit={(e) => handleSubmit(e, id, navigate)}>
                 <Form.Group className="mb-24">
                   <Form.Label>Title *</Form.Label>
-                  <Form.Control
+                  <UniversalInput
                     type="text"
                     name="title"
-                    value={formData.title}
-                    onChange={handleChange}
+                    signal={$eventForm}
                     required
                   />
                 </Form.Group>
 
                 <Form.Group className="mb-24">
                   <Form.Label>Description</Form.Label>
-                  <Form.Control
+                  <UniversalInput
                     as="textarea"
                     rows={4}
                     name="description"
-                    value={formData.description}
-                    onChange={handleChange}
+                    signal={$eventForm}
                   />
                 </Form.Group>
 
@@ -134,11 +58,10 @@ function EventForm() {
                   <Col md={6}>
                     <Form.Group className="mb-24">
                       <Form.Label>Start Date *</Form.Label>
-                      <Form.Control
+                      <UniversalInput
                         type="datetime-local"
                         name="start_date"
-                        value={formData.start_date}
-                        onChange={handleChange}
+                        signal={$eventForm}
                         required
                       />
                     </Form.Group>
@@ -146,11 +69,10 @@ function EventForm() {
                   <Col md={6}>
                     <Form.Group className="mb-24">
                       <Form.Label>End Date *</Form.Label>
-                      <Form.Control
+                      <UniversalInput
                         type="datetime-local"
                         name="end_date"
-                        value={formData.end_date}
-                        onChange={handleChange}
+                        signal={$eventForm}
                         required
                       />
                     </Form.Group>
@@ -159,32 +81,29 @@ function EventForm() {
 
                 <Form.Group className="mb-24">
                   <Form.Label>Location</Form.Label>
-                  <Form.Control
+                  <UniversalInput
                     type="text"
                     name="location"
-                    value={formData.location}
-                    onChange={handleChange}
+                    signal={$eventForm}
                   />
                 </Form.Group>
 
                 <Form.Group className="mb-24">
                   <Form.Label>Image URL</Form.Label>
-                  <Form.Control
+                  <UniversalInput
                     type="url"
                     name="image_url"
-                    value={formData.image_url}
-                    onChange={handleChange}
+                    signal={$eventForm}
                     placeholder="https://example.com/image.jpg"
                   />
                 </Form.Group>
 
                 <Form.Group className="mb-24">
                   <Form.Label>Capacity</Form.Label>
-                  <Form.Control
+                  <UniversalInput
                     type="number"
                     name="capacity"
-                    value={formData.capacity}
-                    onChange={handleChange}
+                    signal={$eventForm}
                     min="1"
                   />
                   <Form.Text className="text-muted">

@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import { faSort, faSortDown, faSortUp, faGear, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Form, Table, Popover, OverlayTrigger } from 'react-bootstrap';
+import UniversalInput from '@src/components/global/Inputs/UniversalInput';
 import TableLoader from './components/TableLoader';
 import Pagination from './components/Pagination';
 
@@ -75,14 +76,16 @@ const SignalTable = ({
 
   return (
     <div className="p-0 overflow-hidden" style={{ borderRadius: 12 }}>
-      <Table striped responsive style={{ fontSize: 16 }} hover>
+      <Table striped responsive style={{ fontSize: 16 }} hover className="mb-136">
         <thead>
           <tr>
             {hasCheckboxes && (
               <td className="border-0 fw-800 py-16" aria-label="Check Box">
-                <Form.Check
+                <UniversalInput
+                  type="checkbox"
+                  name="selectAll"
                   checked={$view.value?.isSelectAllChecked}
-                  onChange={(e) => {
+                  customOnChange={(e) => {
                     e.stopPropagation();
                     $view.update({
                       isSelectAllChecked: e.target.checked,
@@ -113,7 +116,7 @@ const SignalTable = ({
                   onHeaderClick({ key, value, sortKey }, idx);
                 }}
               >
-                <b className="d-flex justify-content-center align-items-center">
+                <b className="d-flex">
                   <span className={`${sortKey ? 'me-8' : ''}`}>{value}</span>
                   {sortKey && (
                     <FontAwesomeIcon
@@ -167,13 +170,11 @@ const SignalTable = ({
             >
               {hasCheckboxes && (
                 <td className="border-0 py-16">
-                  <Form.Check
+                  <UniversalInput
+                    type="checkbox"
+                    name={`row_${row.id}`}
                     checked={$view.value?.selectedItems?.some(({ id }) => id === row.id)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      $view.update({ isShiftKey: e.shiftKey });
-                    }}
-                    onChange={(e) => {
+                    customOnChange={(e) => {
                       e.stopPropagation();
                       let selectedItems = $view.value?.selectedItems || [];
                       if (!e.target.checked) {
@@ -181,7 +182,7 @@ const SignalTable = ({
                       } else {
                         selectedItems.push(row);
                       }
-                      $view.update({ selectedItems, lastCheckedIndex: rowIdx, isShiftKey: false });
+                      $view.update({ selectedItems, lastCheckedIndex: rowIdx, isShiftKey: e.shiftKey });
                     }}
                   />
                 </td>

@@ -1,9 +1,11 @@
 import { useParams } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
+import { $embed } from '@src/signals';
 import EventForm from './EventForm';
 
 function EmbedPage() {
   const { formId } = useParams();
+  const { form } = $embed.value;
 
   const handleSubmitSuccess = (data) => {
     if (data.order) {
@@ -18,7 +20,7 @@ function EmbedPage() {
       <EventForm
         formId={formId}
         onSubmitSuccess={handleSubmitSuccess}
-        theme="light"
+        theme={form?.theme || 'light'}
       />
     </Container>
   );

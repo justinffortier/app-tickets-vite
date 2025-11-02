@@ -1,0 +1,131 @@
+# Cursor Project Ruleset
+# Defines design patterns, conventions, and behavior Cursor should follow
+# when writing, refactoring, or generating code in this repository.
+
+project:
+  name: Workglue
+  framework: Vite + React
+  styling: Bootstrap + SCSS
+  language: TypeScript
+
+rules:
+
+  # 1. Styling and spacing
+  - description: "Use the spacers defined in `_vars.scss` for all spacing, margins, and paddings."
+    enforcement: "Always reference SCSS variables for spacing instead of hardcoded pixel values."
+
+  # 2. Component usage
+  - description: "Use Bootstrap and react-bootstrap components for UI unless a global component exists."
+    enforcement: |
+      - Prefer react-bootstrap components (e.g., Button, Modal, Form) over custom elements.
+      - Before creating a new UI element, check for an existing shared/global component.
+      - Global components are located under `/components/global/`.
+
+  # 3. SignalTable integration
+  - description: "Use `SignalTable.tsx` when rendering tabular data."
+    enforcement: |
+      - Prefer importing and using `SignalTable` over creating custom tables.
+      - Bind tables to signals for reactivity.
+      - Avoid local component state when using SignalTable.
+
+  # 4. Design pattern (helpers + signals)
+  - description: "Follow the `_helpers` design pattern for state, logic, and events."
+    enforcement: |
+      - Maintain signals in helpers instead of local React state.
+      - Keep components declarative, relying on signals and event handlers.
+      - Avoid `useState`, `useReducer`, or other local state hooks when a signal can be used.
+
+  # 5. Helper structure
+  - description: "Follow the `_helpers` folder structure and responsibilities."
+    enforcement: |
+      - `consts`: Holds signals and constants shared across the component.
+      - `events`: Handles UI interactions (e.g., button clicks, form submissions). May trigger API calls.
+      - `resolvers`: Responsible for fetching data and resolving it back into signals.
+      - Keep helpers in `/lib/_helpers/{componentName}/` or colocated with the component.
+
+  # 6. UI state vs form data
+  - description: "Distinguish between UI state and form data in helpers."
+    enforcement: |
+      - Properties like `isLoading` are UI state and should not be included in form properties.
+      - Form properties should be limited to `formValues` that represent data you would send to the backend.
+      - Do not include UI state (such as loading, validation, dirty flags) in form data signals; these belong in separate UI-specific signals.
+  # 7. UniversalInput usage
+  - description: "Use `@components/global/Inputs/UniversalInput/UniversalInput.jsx` for all form fields."
+    enforcement: |
+      - Always render input fields using the UniversalInput component.
+      - Do not use `<Form.Control>`, `<input>`, `<textarea>`, or other native/react-bootstrap input components directly in views/forms; always use UniversalInput unless there's a technical limitation.
+      - Pass the appropriate signal, name, and props for full integration and reactivity.
+
+structure_generation:
+
+  # Component scaffolding
+  - description: "When creating a new component, automatically scaffold the folder and helpers."
+    pattern: "/components/{ComponentName}/"
+    generate:
+      - file: "{ComponentName}.tsx"
+        template: |
+          import React from "react";
+          import * as consts from "./_helpers/consts";
+          import * as events from "./_helpers/events";
+          import * as resolvers from "./_helpers/resolvers";
+          import { useEffectAsync } from "@fyclabs/tools-fyc-react/utils";
+
+          const { signalName } = consts;
+          const { handleClick } = events;
+          const { loadData } = resolvers;
+
+          export default function {ComponentName}() {
+            useEffectAsync(async () => {
+              await loadData();
+            }, []);
+
+            return (
+              <div className="p-3">
+                {/* Component layout */}
+              </div>
+            );
+          }
+
+      - folder: "_helpers"
+
+      - file: "_helpers/consts.ts"
+        template: |
+          import { signal } from "@preact/signals-react";
+
+          // Signals and constants shared across the component
+          export const signalName = signal<any>(null);
+
+      - file: "_helpers/events.ts"
+        template: |
+          import * as consts from "./consts";
+          import * as resolvers from "./resolvers";
+
+          // Handles UI interactions, may trigger API calls
+          export const handleClick = () => {
+            console.log("Event triggered");
+          };
+
+      - file: "_helpers/resolvers.ts"
+        template: |
+          import * as consts from "./consts";
+
+          // Responsible for fetching data and resolving it back into signals
+          export const loadData = async () => {
+            // Example data fetch
+            const data = await fetch("/api/example").then(res => res.json());
+            consts.signalName.value = data;
+          };
+
+general_conventions:
+  component_naming: PascalCase
+  helper_naming: camelCase
+  avoid:
+    - useState
+    - useReducer
+    - inline CSS
+  prefer:
+    - Signals for state management
+    - useEffectAsync for async side effects
+  export_rules:
+    - Default export only for the main React component
+    - Named exports for helpers, events, consts, and resolvers

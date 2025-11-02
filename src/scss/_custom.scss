@@ -17,3 +17,18 @@
   border-bottom-left-radius: 15px !important;
   border-bottom-right-radius: 15px !important;
 }
+
+.event-form-embed {
+  .light {
+    background: $white;
+    color: $black;
+  }
+  .dark {
+    background: $grey-900;
+    color: $white;
+  }
+  .transparent {
+    background: transparent;
+    color: inherit;
+  }
+}

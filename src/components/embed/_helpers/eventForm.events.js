@@ -1,0 +1,260 @@
+import { $embed } from '@src/signals';
+import formsAPI from '@src/api/forms.api';
+import ticketsAPI from '@src/api/tickets.api';
+import ordersAPI from '@src/api/orders.api';
+import discountsAPI from '@src/api/discounts.api';
+
+export const loadFormData = async (formId, eventId) => {
+  try {
+    $embed.loadingStart();
+    $embed.update({ error: null });
+
+    if (formId) {
+      const formData = await formsAPI.getById(formId);
+      $embed.update({ form: formData });
+
+      if (formData.event_id) {
+        const ticketsData = await ticketsAPI.getByEventId(formData.event_id);
+        const now = new Date();
+
+        // Filter tickets by form's available_ticket_ids if specified
+        let filtered = ticketsData || [];
+
+        if (formData.available_ticket_ids && formData.available_ticket_ids.length > 0) {
+          filtered = filtered.filter((t) => formData.available_ticket_ids.includes(t.id));
+        }
+
+        // Then apply date and availability filters
+        filtered = filtered.filter((t) => {
+          const start = new Date(t.sales_start);
+          const end = new Date(t.sales_end);
+          const available = (t.quantity || 0) - (t.sold || 0);
+          return start <= now && now <= end && available > 0;
+        });
+
+        $embed.update({ tickets: filtered });
+      }
+    } else if (eventId) {
+      const ticketsData = await ticketsAPI.getByEventId(eventId);
+      const now = new Date();
+      const filtered = (ticketsData || []).filter((t) => {
+        const start = new Date(t.sales_start);
+        const end = new Date(t.sales_end);
+        const available = (t.quantity || 0) - (t.sold || 0);
+        return start <= now && now <= end && available > 0;
+      });
+      $embed.update({ tickets: filtered });
+    }
+  } catch (err) {
+    $embed.update({ error: 'Error loading form' });
+  } finally {
+    $embed.loadingEnd();
+    checkFormValidity();
+  }
+};
+
+export const calculateTotals = () => {
+  const { selectedTickets, appliedDiscount, tickets } = $embed.value;
+
+  let subtotal = 0;
+  Object.entries(selectedTickets).forEach(([ticketId, quantity]) => {
+    if (quantity > 0) {
+      const ticket = tickets.find((t) => t.id === ticketId);
+      if (ticket) {
+        subtotal += parseFloat(ticket.price) * quantity;
+      }
+    }
+  });
+
+  let discountAmount = 0;
+  if (appliedDiscount) {
+    if (appliedDiscount.type === 'PERCENT') {
+      discountAmount = (subtotal * parseFloat(appliedDiscount.value)) / 100;
+    } else {
+      discountAmount = parseFloat(appliedDiscount.value);
+    }
+  }
+
+  const total = Math.max(0, subtotal - discountAmount);
+
+  $embed.update({
+    totals: {
+      subtotal: parseFloat(subtotal.toFixed(2)),
+      discount_amount: parseFloat(discountAmount.toFixed(2)),
+      total: parseFloat(total.toFixed(2)),
+    },
+  });
+};
+
+export const handleFieldChange = (fieldId, value) => {
+  const formData = { ...$embed.value.formData };
+  formData[fieldId] = value;
+  $embed.update({ formData });
+  checkFormValidity();
+};
+
+export const handleTicketChange = (ticketId, quantity) => {
+  const selectedTickets = { ...$embed.value.selectedTickets };
+  selectedTickets[ticketId] = parseInt(quantity, 10) || 0;
+  $embed.update({ selectedTickets });
+  calculateTotals();
+  checkFormValidity();
+};
+
+export const handleApplyDiscount = async (formId, eventId) => {
+  const { discountCode } = $embed.value;
+
+  if (!discountCode) return;
+
+  try {
+    const { form } = $embed.value;
+    const result = await discountsAPI.validateCode(discountCode, form?.event_id || eventId);
+
+    if (result.valid) {
+      $embed.update({
+        appliedDiscount: result.discount,
+        error: null,
+      });
+      calculateTotals();
+    } else {
+      $embed.update({
+        error: result.error,
+        appliedDiscount: null,
+      });
+    }
+  } catch (err) {
+    $embed.update({ error: 'Error validating discount code' });
+  }
+};
+
+export const validateForm = () => {
+  const { form, formData, selectedTickets, tickets } = $embed.value;
+
+  if (form?.schema) {
+    for (const field of form.schema) {
+      if (field.required && !formData[field.label]) {
+        return `${field.label} is required`;
+      }
+    }
+  }
+
+  const hasTickets = Object.values(selectedTickets).some((qty) => qty > 0);
+  if (tickets.length > 0 && !hasTickets) {
+    return 'Please select at least one ticket';
+  }
+
+  if (!formData.email) {
+    return 'Email is required';
+  }
+
+  return null;
+};
+
+export const checkFormValidity = () => {
+  const { form, formData, selectedTickets, tickets } = $embed.value;
+
+  // Check email is present and valid
+  if (!formData.email || !formData.email.trim()) {
+    $embed.update({ isFormValid: false });
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(formData.email)) {
+    $embed.update({ isFormValid: false });
+    return;
+  }
+
+  // Check all required form fields
+  if (form?.schema) {
+    for (const field of form.schema) {
+      if (field.required) {
+        const value = formData[field.label];
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          $embed.update({ isFormValid: false });
+          return;
+        }
+      }
+    }
+  }
+
+  // Check if at least one ticket is selected (only if tickets are available)
+  if (tickets.length > 0) {
+    const hasTickets = Object.values(selectedTickets).some((qty) => qty > 0);
+    if (!hasTickets) {
+      $embed.update({ isFormValid: false });
+      return;
+    }
+  }
+
+  // All validations passed
+  $embed.update({ isFormValid: true });
+};
+
+export const handleSubmit = async (e, formId, eventId, onSubmitSuccess) => {
+  e.preventDefault();
+
+  const validationError = validateForm();
+  if (validationError) {
+    $embed.update({ error: validationError });
+    return;
+  }
+
+  try {
+    $embed.loadingStart();
+    $embed.update({ error: null });
+
+    const { form, formData, selectedTickets, appliedDiscount, totals, tickets } = $embed.value;
+    let submissionId = null;
+
+    if (form) {
+      const submission = await formsAPI.submitForm(form.id, formData, formData.email);
+      submissionId = submission.id;
+    }
+
+    const hasTickets = Object.values(selectedTickets).some((qty) => qty > 0);
+
+    if (hasTickets) {
+      const orderItems = Object.entries(selectedTickets)
+        .filter(([, quantity]) => quantity > 0)
+        .map(([ticketId, quantity]) => {
+          const ticket = tickets.find((t) => t.id === ticketId);
+          return {
+            ticket_type_id: ticketId,
+            quantity,
+            unit_price: parseFloat(ticket.price),
+          };
+        });
+
+      const orderData = {
+        event_id: form?.event_id || eventId,
+        form_submission_id: submissionId,
+        discount_code_id: appliedDiscount?.id || null,
+        subtotal: totals.subtotal,
+        discount_amount: totals.discount_amount,
+        total: totals.total,
+        status: 'PENDING',
+        customer_email: formData.email,
+        customer_name: formData.name || null,
+        items: orderItems,
+      };
+
+      const order = await ordersAPI.create(orderData);
+
+      if (onSubmitSuccess) {
+        onSubmitSuccess({ order, submission: submissionId });
+      }
+    } else if (onSubmitSuccess) {
+      onSubmitSuccess({ submission: submissionId });
+    }
+  } catch (err) {
+    $embed.update({ error: 'Error submitting form. Please try again.' });
+  } finally {
+    $embed.loadingEnd();
+  }
+};
+
+export const updateDiscountCode = (code) => {
+  $embed.update({ discountCode: code });
+};

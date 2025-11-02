@@ -1,124 +1,30 @@
-import { useState, useEffect } from 'react';
-import { Card, Table, Button, Modal, Form, Row, Col, Badge } from 'react-bootstrap';
+import { Card, Table, Button, Modal, Form, Row, Col, Badge, Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faEdit, faTrash, faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { format } from 'date-fns';
-import discountsAPI from '@src/api/discounts.api';
-import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
+import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
+import { $discounts } from '@src/signals';
+import UniversalInput from '@src/components/global/Inputs/UniversalInput';
+import {
+  $discountForm,
+  $discountUI,
+  loadDiscounts,
+  handleOpenModal,
+  handleCloseModal,
+  handleSubmit,
+  handleDelete,
+  handleToggleActive,
+} from './_helpers/discountsManager.events';
 
 function DiscountsManager({ eventId }) {
-  const [discounts, setDiscounts] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [editingDiscount, setEditingDiscount] = useState(null);
-  const [formData, setFormData] = useState({
-    code: '',
-    type: 'PERCENT',
-    value: '',
-    max_uses: '',
-    expires_at: '',
-    is_active: true,
-  });
+  const discounts = $discounts.value.list;
+  const { showModal } = $discountUI.value;
+  const { editingDiscount } = $discountUI.value;
+  const formData = $discountForm.value;
 
-  useEffect(() => {
-    loadDiscounts();
+  useEffectAsync(async () => {
+    await loadDiscounts(eventId);
   }, [eventId]);
-
-  const loadDiscounts = async () => {
-    try {
-      const data = await discountsAPI.getByEventId(eventId);
-      setDiscounts(data);
-    } catch (error) {
-      showToast('Error loading discounts', 'error');
-    }
-  };
-
-  const handleOpenModal = (discount = null) => {
-    if (discount) {
-      setEditingDiscount(discount);
-      setFormData({
-        code: discount.code,
-        type: discount.type,
-        value: discount.value,
-        max_uses: discount.max_uses || '',
-        expires_at: discount.expires_at ? new Date(discount.expires_at).toISOString().slice(0, 16) : '',
-        is_active: discount.is_active,
-      });
-    } else {
-      setEditingDiscount(null);
-      setFormData({
-        code: '',
-        type: 'PERCENT',
-        value: '',
-        max_uses: '',
-        expires_at: '',
-        is_active: true,
-      });
-    }
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingDiscount(null);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type: inputType, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: inputType === 'checkbox' ? checked : value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const submitData = {
-        ...formData,
-        event_id: eventId,
-        code: formData.code.toUpperCase(),
-        value: parseFloat(formData.value),
-        max_uses: formData.max_uses ? parseInt(formData.max_uses, 10) : null,
-        expires_at: formData.expires_at || null,
-      };
-
-      if (editingDiscount) {
-        await discountsAPI.update(editingDiscount.id, submitData);
-        showToast('Discount updated successfully', 'success');
-      } else {
-        await discountsAPI.create(submitData);
-        showToast('Discount created successfully', 'success');
-      }
-
-      handleCloseModal();
-      loadDiscounts();
-    } catch (error) {
-      showToast('Error saving discount', 'error');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this discount code?')) return;
-
-    try {
-      await discountsAPI.delete(id);
-      showToast('Discount deleted successfully', 'success');
-      loadDiscounts();
-    } catch (error) {
-      showToast('Error deleting discount', 'error');
-    }
-  };
-
-  const handleToggleActive = async (discount) => {
-    try {
-      await discountsAPI.update(discount.id, { is_active: !discount.is_active });
-      showToast(`Discount ${!discount.is_active ? 'activated' : 'deactivated'}`, 'success');
-      loadDiscounts();
-    } catch (error) {
-      showToast('Error updating discount', 'error');
-    }
-  };
 
   return (
     <>
@@ -172,29 +78,27 @@ function DiscountsManager({ eventId }) {
                       </Badge>
                     </td>
                     <td>
-                      <div className="d-flex gap-2">
-                        <Button
-                          size="sm"
-                          variant={discount.is_active ? 'outline-warning' : 'outline-success'}
-                          onClick={() => handleToggleActive(discount)}
-                        >
-                          <FontAwesomeIcon icon={discount.is_active ? faToggleOff : faToggleOn} />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline-secondary"
-                          onClick={() => handleOpenModal(discount)}
-                        >
-                          <FontAwesomeIcon icon={faEdit} />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline-danger"
-                          onClick={() => handleDelete(discount.id)}
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </Button>
-                      </div>
+                      <Dropdown>
+                        <Dropdown.Toggle variant="link" size="sm" className="text-white">
+                          <FontAwesomeIcon icon={faEllipsisV} />
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                          <Dropdown.Item onClick={() => handleToggleActive(discount, eventId)}>
+                            {discount.is_active ? 'Deactivate' : 'Activate'}
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => handleOpenModal(discount)}>
+                            Edit
+                          </Dropdown.Item>
+                          <Dropdown.Divider />
+                          <Dropdown.Item
+                            className="text-danger"
+                            onClick={() => handleDelete(discount.id, eventId)}
+                          >
+                            Delete
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
                     </td>
                   </tr>
                 ))}
@@ -208,15 +112,14 @@ function DiscountsManager({ eventId }) {
         <Modal.Header closeButton>
           <Modal.Title>{editingDiscount ? 'Edit Discount' : 'Add Discount'}</Modal.Title>
         </Modal.Header>
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={(e) => handleSubmit(e, eventId)}>
           <Modal.Body>
             <Form.Group className="mb-24">
               <Form.Label>Code *</Form.Label>
-              <Form.Control
+              <UniversalInput
                 type="text"
                 name="code"
-                value={formData.code}
-                onChange={handleChange}
+                signal={$discountForm}
                 style={{ textTransform: 'uppercase' }}
                 required
               />
@@ -229,27 +132,26 @@ function DiscountsManager({ eventId }) {
               <Col md={6}>
                 <Form.Group className="mb-24">
                   <Form.Label>Type *</Form.Label>
-                  <Form.Select
+                  <UniversalInput
+                    as="select"
                     name="type"
-                    value={formData.type}
-                    onChange={handleChange}
+                    signal={$discountForm}
                     required
                   >
                     <option value="PERCENT">Percentage</option>
                     <option value="AMOUNT">Fixed Amount</option>
-                  </Form.Select>
+                  </UniversalInput>
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-24">
                   <Form.Label>Value *</Form.Label>
-                  <Form.Control
+                  <UniversalInput
                     type="number"
                     step="0.01"
                     min="0"
                     name="value"
-                    value={formData.value}
-                    onChange={handleChange}
+                    signal={$discountForm}
                     required
                   />
                 </Form.Group>
@@ -258,12 +160,11 @@ function DiscountsManager({ eventId }) {
 
             <Form.Group className="mb-24">
               <Form.Label>Max Uses</Form.Label>
-              <Form.Control
+              <UniversalInput
                 type="number"
                 min="1"
                 name="max_uses"
-                value={formData.max_uses}
-                onChange={handleChange}
+                signal={$discountForm}
               />
               <Form.Text className="text-muted">
                 Leave empty for unlimited uses
@@ -272,11 +173,10 @@ function DiscountsManager({ eventId }) {
 
             <Form.Group className="mb-24">
               <Form.Label>Expires At</Form.Label>
-              <Form.Control
+              <UniversalInput
                 type="datetime-local"
                 name="expires_at"
-                value={formData.expires_at}
-                onChange={handleChange}
+                signal={$discountForm}
               />
               <Form.Text className="text-muted">
                 Leave empty for no expiration
@@ -284,12 +184,11 @@ function DiscountsManager({ eventId }) {
             </Form.Group>
 
             <Form.Group className="mb-24">
-              <Form.Check
+              <UniversalInput
                 type="checkbox"
                 name="is_active"
+                signal={$discountForm}
                 label="Active"
-                checked={formData.is_active}
-                onChange={handleChange}
               />
             </Form.Group>
           </Modal.Body>

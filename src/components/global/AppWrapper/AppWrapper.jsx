@@ -1,8 +1,7 @@
-/* eslint-disable implicit-arrow-linebreak */
 import useWindowSize from '@src/utils/windowSize';
 import { Badge, Container } from 'react-bootstrap';
 import { Outlet } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import { auth } from '@src/utils/firebase';
 import { $global } from '@src/signals';
 import { getCurrentAuthenticatedUser, handleFirebaseLogin, handleFirebaseLogout } from '@src/utils/auth';
@@ -11,7 +10,7 @@ import Loadable from '../Loadable';
 const AppWrapper = () => {
   const { breakPoint } = useWindowSize();
 
-  useEffect(() => {
+  useEffectAsync(async () => {
     const unsubscribe = auth.onAuthStateChanged(async (fbUser) => {
       $global.update({
         isLoading: true,

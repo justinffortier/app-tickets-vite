@@ -66,6 +66,26 @@ Deno.serve(async (req: Request) => {
       }
 
       case "create": {
+        // Validate required fields
+        if (!data.event_id) {
+          throw new Error("event_id is required");
+        }
+
+        // Validate ticket IDs if provided
+        if (data.available_ticket_ids && data.available_ticket_ids.length > 0) {
+          const { data: tickets, error: ticketError } = await supabaseClient
+            .from("ticket_types")
+            .select("id")
+            .eq("event_id", data.event_id)
+            .in("id", data.available_ticket_ids);
+
+          if (ticketError) throw ticketError;
+
+          if (!tickets || tickets.length !== data.available_ticket_ids.length) {
+            throw new Error("Invalid ticket IDs: some tickets do not belong to this event");
+          }
+        }
+
         // created_by should be passed in the data from the client
         // It should be the user's Supabase ID (from users table, not auth.users)
         const { data: form, error } = await supabaseClient
@@ -80,6 +100,21 @@ Deno.serve(async (req: Request) => {
       }
 
       case "update": {
+        // Validate ticket IDs if provided
+        if (data.available_ticket_ids && data.event_id) {
+          const { data: tickets, error: ticketError } = await supabaseClient
+            .from("ticket_types")
+            .select("id")
+            .eq("event_id", data.event_id)
+            .in("id", data.available_ticket_ids);
+
+          if (ticketError) throw ticketError;
+
+          if (!tickets || tickets.length !== data.available_ticket_ids.length) {
+            throw new Error("Invalid ticket IDs: some tickets do not belong to this event");
+          }
+        }
+
         const { data: form, error } = await supabaseClient
           .from("forms")
           .update({

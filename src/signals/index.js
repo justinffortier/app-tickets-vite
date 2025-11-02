@@ -12,3 +12,37 @@ export const $detail = Signal({});
 export const $form = Signal({});
 export const $filter = Signal({ page: 1 });
 export const $alert = Signal({});
+
+// Admin specific signals
+export const $events = Signal({
+  list: [],
+  current: null,
+});
+export const $tickets = Signal({
+  list: [],
+});
+export const $discounts = Signal({
+  list: [],
+});
+export const $forms = Signal({
+  list: [],
+});
+export const $dashboard = Signal({
+  stats: {
+    events: 0,
+    forms: 0,
+    orders: 0,
+    revenue: 0,
+  },
+});
+export const $embed = Signal({
+  form: null,
+  tickets: [],
+  formData: {},
+  selectedTickets: {},
+  discountCode: '',
+  appliedDiscount: null,
+  totals: { subtotal: 0, discount_amount: 0, total: 0 },
+  error: null,
+  isFormValid: false,
+});

@@ -1,4 +1,3 @@
-/* eslint-disable no-unreachable */
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import '@src/scss/style.scss';
 import NotFound from '@src/components/views/NotFound';
@@ -9,7 +8,6 @@ import AppWrapper from './components/global/AppWrapper';
 import Alert from './components/global/Alert';
 import { Dashboard } from './components/views/Admin';
 import { EventsList, EventForm, EventDetail } from './components/views/Admin/Events';
-import { FormsList, FormBuilder, FormEmbed } from './components/views/Admin/Forms';
 import { EmbedPage } from './components/embed';
 import { Login, Signup, ForgotPassword } from './components/views/Auth';
 
@@ -34,11 +32,6 @@ function App() {
               <Route path="/admin/events" element={<EventsList />} />
               <Route path="/admin/events/new" element={<EventForm />} />
               <Route path="/admin/events/:id" element={<EventDetail />} />
-              <Route path="/admin/events/:id/edit" element={<EventForm />} />
-              <Route path="/admin/forms" element={<FormsList />} />
-              <Route path="/admin/forms/new" element={<FormBuilder />} />
-              <Route path="/admin/forms/:id/edit" element={<FormBuilder />} />
-              <Route path="/admin/forms/:id/embed" element={<FormEmbed />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

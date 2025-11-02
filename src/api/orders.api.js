@@ -11,6 +11,11 @@ export const ordersAPI = {
     return result.data;
   },
 
+  async getByEventId(eventId) {
+    const result = await edgeFunctionHelpers.orders.getAll({ event_id: eventId });
+    return result.data;
+  },
+
   async create(orderData) {
     const result = await edgeFunctionHelpers.orders.create(orderData);
     return result.data;

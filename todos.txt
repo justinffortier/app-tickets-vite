@@ -1,0 +1,20 @@
+Done
+√ Tickets
+  Repeater
+    Capacity should be based on tickets
+√ Custom Fields for Forms
+√ Discount codes
+√ Move code to helpers
+√ Put it into FTW and see what happens
+√ Embedable form
+√ Update colors and style
+
+Must Have
+Add Address(s) to each event
+Add Accru
+
+Nice to Have
+Change Events into context menu
+Organizational Settings Including payment integration (add Accru keys as properties)
+Add ability to add related pocket events
+

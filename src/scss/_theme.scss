@@ -96,3 +96,88 @@ small {
     line-height: 20px;
   }
 }
+.card {
+  background: $grey-900;
+  color: $white;
+}
+
+input, textarea, select {
+  background: $grey-800 !important;
+  border: $white !important;
+  color: $white !important;
+  &::placeholder {
+    color: $muted !important;
+  }
+}
+
+.nav-link {
+  color: $white;
+}
+
+.text-muted {
+  color: $muted !important;
+}
+
+th, td {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+// Overriding only the text color for Bootstrap buttons.
+// Ensures correct color referencing for each variant (using SCSS variable).
+
+.btn-primary    { color: $primary-900 !important; }
+.btn-secondary  { color: $secondary-900 !important; }
+.btn-success    { color: $success-900 !important; }
+.btn-danger     { color: $danger-900 !important; }
+.btn-warning    { color: $warning-900 !important; }
+.btn-info       { color: $info-900 !important; }
+
+
+.modal{
+  .modal-content {
+    background: $grey-900 !important;
+    color: $white !important;
+  }
+}
+
+
+.card.transparent {
+  background: transparent !important;
+  color: inherit !important;
+  .card-body {
+    background: transparent !important;
+    color: inherit !important;
+  }
+  input {
+    background: transparent !important;
+    color: inherit !important;
+  }
+}
+
+.card.light {
+  background: $white !important;
+  color: $black !important;
+  .card-body {
+    background: $white !important;
+    color: $black !important;
+  }
+  input {
+    background: $white !important;
+    color: $black !important;
+    border: 1px solid $grey-800 !important;
+    border-radius: 5px !important;
+  }
+}
+.card.dark {
+  .card-body {
+    background: $dark !important;
+    color: $white !important;
+  }
+  input {
+    background: $dark !important;
+    color: $white !important;
+  }
+  background: $dark !important;
+  color: $white !important;
+}

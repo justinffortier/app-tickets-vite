@@ -22,7 +22,7 @@ export async function callEdgeFunction(functionName, options = {}) {
 
   const requestHeaders = {
     'Content-Type': 'application/json',
-    'apikey': SUPABASE_ANON_KEY,
+    apikey: SUPABASE_ANON_KEY,
     ...headers,
   };
 
@@ -30,14 +30,14 @@ export async function callEdgeFunction(functionName, options = {}) {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
-      requestHeaders['Authorization'] = `Bearer ${session.access_token}`;
+      requestHeaders.Authorization = `Bearer ${session.access_token}`;
     } else {
       // If no session, use the anon key as Authorization for edge functions
-      requestHeaders['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+      requestHeaders.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
     }
   } catch (error) {
     // If there's no session, use anon key
-    requestHeaders['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+    requestHeaders.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
   }
 
   const config = {
@@ -287,4 +287,3 @@ export const edgeFunctionHelpers = {
 };
 
 export default callEdgeFunction;
-
