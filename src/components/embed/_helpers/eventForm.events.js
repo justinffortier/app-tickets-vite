@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { $embed } from '@src/signals';
 import formsAPI from '@src/api/forms.api';
 import ticketsAPI from '@src/api/tickets.api';

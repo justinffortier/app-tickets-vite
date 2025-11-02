@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-alert */
+
 import { useCallback, useMemo } from 'react';
 import { $alert } from '@src/signals';
 import Toast from '@src/components/global/Alert/Toast';

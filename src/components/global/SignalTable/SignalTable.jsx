@@ -4,7 +4,7 @@
 import React, { useEffect } from 'react';
 import { faSort, faSortDown, faSortUp, faGear, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Form, Table, Popover, OverlayTrigger } from 'react-bootstrap';
+import { Table, Popover, OverlayTrigger } from 'react-bootstrap';
 import UniversalInput from '@src/components/global/Inputs/UniversalInput';
 import TableLoader from './components/TableLoader';
 import Pagination from './components/Pagination';

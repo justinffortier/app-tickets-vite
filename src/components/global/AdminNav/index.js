@@ -1,1 +1,3 @@
-export { default } from './AdminNav';
+import AdminNav from './AdminNav';
+
+export default AdminNav;

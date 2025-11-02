@@ -20,7 +20,6 @@ function DiscountsManager({ eventId }) {
   const discounts = $discounts.value.list;
   const { showModal } = $discountUI.value;
   const { editingDiscount } = $discountUI.value;
-  const formData = $discountForm.value;
 
   useEffectAsync(async () => {
     await loadDiscounts(eventId);

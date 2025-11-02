@@ -26,7 +26,7 @@ export const ordersAPI = {
     return result.data;
   },
 
-  async updateTicketInventory(orderId) {
+  async updateTicketInventory() {
     // This is handled server-side in the edge function
     // Keeping the method for backward compatibility
     return true;

@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
@@ -8,7 +9,6 @@ import { $eventForm, loadEvent, handleSubmit } from './_helpers/eventForm.events
 function EventForm() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const formData = $eventForm.value;
   const loading = $eventForm.value.isLoading;
 
   useEffectAsync(async () => {

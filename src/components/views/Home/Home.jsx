@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { $global } from '@src/signals';

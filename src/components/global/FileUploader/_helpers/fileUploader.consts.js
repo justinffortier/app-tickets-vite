@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 export const FILE_TYPES = {
   pdf: 'application/pdf',
   doc: 'application/msword',

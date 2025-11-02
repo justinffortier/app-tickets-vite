@@ -57,5 +57,9 @@ module.exports = {
     'react/no-unstable-nested-components': [
       'off',
     ],
+    'react/no-unescaped-entities': 'off',
+    'import/prefer-default-export': 'off',
+    'no-restricted-globals': 'off',
+    'no-alert': 'off',
   },
 }
