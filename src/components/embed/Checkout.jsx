@@ -4,6 +4,8 @@ import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import { AccruPay, form } from 'accru-pay-react';
 import { $checkout } from '@src/signals';
 import Loader from '@src/components/global/Loader';
+import { useState } from 'react';
+import paymentsAPI from '@src/api/payments.api';
 import * as resolvers from './_helpers/checkout.resolvers';
 import * as events from './_helpers/checkout.events';
 import { isProcessingPayment } from './_helpers/checkout.consts';
@@ -74,6 +76,31 @@ function Checkout() {
   const { order, error, paymentStatus, paymentSession } = $checkout.value;
   const { isLoading } = $checkout.value;
   const theme = $checkout.value.form?.theme || 'light';
+  const [providers, setProviders] = useState(null);
+
+  // Fetch providers configuration from AccruPay
+  useEffectAsync(async () => {
+    try {
+      console.log('Fetching providers from AccruPay...');
+      const providersData = await paymentsAPI.getProviders();
+      console.log('Providers fetched:', providersData);
+      setProviders(providersData);
+    } catch (err) {
+      console.error('Failed to fetch providers:', err);
+      // Set fallback empty config if fetch fails
+      setProviders([{ name: 'nuvei', config: {} }]);
+    }
+  }, []);
+
+  // Function to get providers configuration for AccruPay React SDK
+  const getProviders = () => {
+    if (!providers) {
+      console.log('Providers not loaded yet, returning empty array');
+      return [];
+    }
+    console.log('Returning providers:', providers);
+    return providers;
+  };
 
   useEffectAsync(() => {
     document.body.className = '';
@@ -86,19 +113,22 @@ function Checkout() {
   }, [orderId]);
 
   useEffectAsync(async () => {
-    const { order: orderData } = $checkout.value;
-    if (orderData && orderData.status === 'PENDING' && !paymentSession) {
+    const { order: orderData, paymentSession: currentSession } = $checkout.value;
+    if (orderData && orderData.status === 'PENDING' && !currentSession) {
       try {
         let session = await resolvers.fetchPaymentSession(orderId);
         if (!session) {
           session = await resolvers.initializePaymentSession(orderId);
         }
-        $checkout.update({ paymentSession: session });
+        // Only update if we got a valid session to avoid loops
+        if (session) {
+          $checkout.update({ paymentSession: session });
+        }
       } catch (err) {
         // Error is handled in resolver
       }
     }
-  }, [order, orderId, paymentSession]);
+  }, [order, orderId]);
 
   const renderOrderSummary = () => {
     if (!order) return null;
@@ -232,12 +262,13 @@ function Checkout() {
             <Card>
               <Card.Body>
                 <h5 className="mb-24">Payment Information</h5>
-                {console.log('paymentSession', paymentSession)}
+                {console.log('paymentSession', paymentSession.preSessionData)}
 
                 {paymentSession.sessionToken ? (
                   <AccruPay
                     sessionToken={paymentSession.sessionToken}
                     preferredProvider={PAYMENT_PROCESSOR}
+                    preReleaseGetProviders={getProviders}
                   >
                     <CreditCardForm />
                   </AccruPay>

@@ -1,7 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
 
-
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { AccruPay, COUNTRY_ISO_2, CURRENCY, TRANSACTION_PROVIDER } from "npm:@accrupay/node@0.14.0";
@@ -155,6 +154,18 @@ Deno.serve(async (req) => {
 
           const transaction = await accruPay.transactions.startClientPaymentSession(sessionData);
 
+          // Get pre-session data for React SDK
+          let preSessionData = null;
+          try {
+            const preSessionDataResponse = await accruPay.transactions.getClientPaymentPreSessionData({
+              transactionProvider: TRANSACTION_PROVIDER.NUVEI,
+            });
+            preSessionData = preSessionDataResponse;
+          } catch (preSessionError) {
+            console.warn("Could not fetch pre-session data:", preSessionError);
+            // Continue without pre-session data - session token should be sufficient
+          }
+
           // Store session information in order
           const { error: updateError } = await supabaseClient
             .from("orders")
@@ -173,6 +184,7 @@ Deno.serve(async (req) => {
               sessionToken: transaction.token,
               transactionId: transaction.id,
               tokenExpiresAt: transaction.tokenExpiresAt,
+              preSessionData: preSessionData,
             },
           };
         } catch (paymentError: any) {
@@ -354,23 +366,64 @@ Deno.serve(async (req) => {
       }
 
       case "getPaymentSession": {
+        // Get payment session from database
         const { data: order, error: orderError } = await supabaseClient
           .from("orders")
-          .select("payment_session_id, payment_intent_id")
+          .select(`
+            id,
+            status,
+            payment_session_id,
+            payment_intent_id,
+            payment_provider
+          `)
           .eq("id", orderId)
           .maybeSingle();
 
         if (orderError) throw orderError;
         if (!order) throw new Error("Order not found");
 
-        result = { data: order };
+        // If no session exists or order is not pending, return null (frontend will create new session)
+        if (!order.payment_session_id || order.status !== "PENDING") {
+          result = { data: null };
+          break;
+        }
+
+        // Return the session token
+        result = {
+          data: {
+            sessionToken: order.payment_session_id,
+            transactionId: order.payment_intent_id,
+            paymentProvider: order.payment_provider,
+          },
+        };
+        break;
+      }
+
+      case "getProviders": {
+        try {
+          console.log("Fetching provider configuration from AccruPay...");
+          const preSessionData = await accruPay.transactions.getClientPaymentPreSessionData({
+            transactionProvider: TRANSACTION_PROVIDER.NUVEI,
+          });
+
+          console.log("Provider config fetched successfully:", preSessionData);
+
+          result = {
+            data: [{
+              name: 'nuvei',
+              config: preSessionData
+            }]
+          };
+        } catch (error: any) {
+          console.error("Error fetching providers:", error);
+          throw new Error(`Failed to fetch providers: ${error.message}`);
+        }
         break;
       }
 
       default:
         throw new Error(`Unknown action: ${action}`);
     }
-
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: {

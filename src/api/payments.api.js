@@ -20,6 +20,11 @@ export const paymentsAPI = {
     const result = await edgeFunctionHelpers.payments.getPaymentSession(orderId);
     return result.data;
   },
+
+  async getProviders() {
+    const result = await edgeFunctionHelpers.payments.getProviders();
+    return result.data;
+  },
 };
 
 export default paymentsAPI;

@@ -302,6 +302,10 @@ export const edgeFunctionHelpers = {
       method: 'POST',
       body: { action: 'getPaymentSession', orderId },
     }),
+    getProviders: () => callEdgeFunction('payments', {
+      method: 'POST',
+      body: { action: 'getProviders' },
+    }),
   },
 };
 
