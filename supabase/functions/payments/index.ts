@@ -22,23 +22,30 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const ACCRUPAY_SECRET_KEY = Deno.env.get("ACCRUPAY_SECRET_KEY") ?? "";
     const ENV_TAG = Deno.env.get("ENV_TAG") ?? "dev";
+
+    const ACCRUPAY_SECRET_KEY = Deno.env.get("ACCRUPAY_SECRET_KEY") ?? "";
+
+    // Use QA secret key when in QA environment
+    const ACCRUPAY_SECRET_KEY_QA = ENV_TAG === "qa"
+      ? Deno.env.get("ACCRUPAY_SECRET_KEY_QA") ?? ""
+      : Deno.env.get("ACCRUPAY_SECRET_KEY_QA") ?? "";
 
     if (!SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
     }
 
-    if (!ACCRUPAY_SECRET_KEY) {
-      throw new Error("ACCRUPAY_SECRET_KEY is not set");
+    if (!ACCRUPAY_SECRET_KEY_QA) {
+      throw new Error("ACCRUPAY_SECRET_KEY_QA is not set");
     }
 
     // Initialize Accrupay client
-    const environment = ENV_TAG === "prod" ? "production" : "qa";
+    // const environment = ENV_TAG === "prod" ? "production" : "qa";
+    const environment = 'qa';
     let accruPay;
     try {
       accruPay = new AccruPay({
-        apiSecret: ACCRUPAY_SECRET_KEY,
+        apiSecret: environment === "production" ? ACCRUPAY_SECRET_KEY : ACCRUPAY_SECRET_KEY_QA,
         environment,
         onAuthError: () => {
           console.error("AccruPay Authentication Error - onAuthError callback triggered");
@@ -51,7 +58,7 @@ Deno.serve(async (req) => {
         },
       });
 
-      console.log("AccruPay client initialized successfully");
+      console.log(`AccruPay client initialized successfully (environment: ${environment}`);
     } catch (initError) {
       console.error("Failed to initialize AccruPay client:", initError);
       throw new Error(`AccruPay initialization failed: ${initError.message}`);
@@ -215,7 +222,8 @@ Deno.serve(async (req) => {
             id,
             status,
             payment_intent_id,
-            payment_session_id
+            payment_session_id,
+            customer_email
           `)
           .eq("id", orderId)
           .maybeSingle();
@@ -272,6 +280,17 @@ Deno.serve(async (req) => {
           }
         } catch (paymentError: any) {
           console.error("Payment verification error:", paymentError);
+          console.error("Error details:", JSON.stringify(paymentError, null, 2));
+          console.error("Error message:", paymentError.message);
+          console.error("Error stack:", paymentError.stack);
+
+          // Check for GraphQL errors
+          if (paymentError.graphQLErrors) {
+            console.error("GraphQL errors:", JSON.stringify(paymentError.graphQLErrors, null, 2));
+          }
+          if (paymentError.networkError) {
+            console.error("Network error:", paymentError.networkError);
+          }
 
           // Update order status to FAILED
           await supabaseClient
@@ -401,7 +420,6 @@ Deno.serve(async (req) => {
 
       case "getProviders": {
         try {
-          console.log("Fetching provider configuration from AccruPay...");
           const preSessionData = await accruPay.transactions.getClientPaymentPreSessionData({
             transactionProvider: TRANSACTION_PROVIDER.NUVEI,
           });

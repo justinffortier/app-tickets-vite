@@ -9,8 +9,11 @@ export const handlePaymentSuccess = async (paymentData) => {
 
     const { order } = $checkout.value;
 
+    console.log('Payment success callback received:', paymentData);
+    console.log('Order ID:', order.id);
+
     // Confirm payment with backend
-    await paymentsAPI.confirmPayment(order.id, paymentData);
+    await paymentsAPI.confirmPayment($checkout.value.paymentSession?.transactionId, paymentData);
 
     $checkout.update({
       paymentStatus: 'completed',

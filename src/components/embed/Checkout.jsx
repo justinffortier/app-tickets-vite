@@ -81,9 +81,7 @@ function Checkout() {
   // Fetch providers configuration from AccruPay
   useEffectAsync(async () => {
     try {
-      console.log('Fetching providers from AccruPay...');
       const providersData = await paymentsAPI.getProviders();
-      console.log('Providers fetched:', providersData);
       setProviders(providersData);
     } catch (err) {
       console.error('Failed to fetch providers:', err);
@@ -262,13 +260,22 @@ function Checkout() {
             <Card>
               <Card.Body>
                 <h5 className="mb-24">Payment Information</h5>
-                {console.log('paymentSession', paymentSession.preSessionData)}
-
                 {paymentSession.sessionToken ? (
                   <AccruPay
                     sessionToken={paymentSession.sessionToken}
                     preferredProvider={PAYMENT_PROCESSOR}
-                    preReleaseGetProviders={getProviders}
+                    preReleaseGetProviders={() => [
+                      {
+                        name: 'nuvei',
+                        config: {
+                          provider: 'NUVEI',
+                          merchantId: '5316846880324403100',
+                          merchantSiteId: '241418',
+                          environment: 'int',
+                          __typename: 'MerchantClientTransactionNuveiPreSessionData',
+                        },
+                      },
+                    ]}
                   >
                     <CreditCardForm />
                   </AccruPay>
