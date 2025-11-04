@@ -264,18 +264,7 @@ function Checkout() {
                   <AccruPay
                     sessionToken={paymentSession.sessionToken}
                     preferredProvider={PAYMENT_PROCESSOR}
-                    preReleaseGetProviders={() => [
-                      {
-                        name: 'nuvei',
-                        config: {
-                          provider: 'NUVEI',
-                          merchantId: '5316846880324403100',
-                          merchantSiteId: '241418',
-                          environment: 'int',
-                          __typename: 'MerchantClientTransactionNuveiPreSessionData',
-                        },
-                      },
-                    ]}
+                    preReleaseGetProviders={getProviders}
                   >
                     <CreditCardForm />
                   </AccruPay>

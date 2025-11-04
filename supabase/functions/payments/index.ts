@@ -167,7 +167,10 @@ Deno.serve(async (req) => {
             const preSessionDataResponse = await accruPay.transactions.getClientPaymentPreSessionData({
               transactionProvider: TRANSACTION_PROVIDER.NUVEI,
             });
-            preSessionData = preSessionDataResponse;
+            preSessionData = {
+              ...preSessionDataResponse,
+              env: preSessionDataResponse.environment,
+            };
           } catch (preSessionError) {
             console.warn("Could not fetch pre-session data:", preSessionError);
             // Continue without pre-session data - session token should be sufficient
@@ -429,7 +432,10 @@ Deno.serve(async (req) => {
           result = {
             data: [{
               name: 'nuvei',
-              config: preSessionData
+              config: {
+                ...preSessionData,
+                env: preSessionData.environment,
+              }
             }]
           };
         } catch (error: any) {
