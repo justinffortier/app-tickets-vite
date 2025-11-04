@@ -26,8 +26,51 @@ Welcome to [Your Project Name]! 🚀
 3. **Install Dependencies:**
    yarn
 
-4. **Start the Project:**
+4. **Configure Environment Variables:**
+   Create a `.env` file in the root directory with the following variables:
+   ```
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_FIREBASE_API_KEY=your_firebase_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+   VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+   VITE_ACCRUPAY_PUBLIC_KEY=your_accrupay_public_key
+   ```
+
+5. **Configure Supabase Secrets:**
+   Set the following secrets in Supabase for payment processing:
+   ```
+   supabase secrets set ACCRUPAY_SECRET_KEY=your_accrupay_secret_key
+   supabase secrets set ACCRUPAY_WEBHOOK_SECRET=your_accrupay_webhook_secret
+   ```
+
+6. **Deploy Edge Functions:**
+   ```
+   yarn deploy-functions
+   ```
+
+7. **Start the Project:**
+   ```
    yarn start
+   ```
+
+## Payment Configuration
+
+This project uses Accrupay for payment processing with the Nuvei provider. To enable payments:
+
+1. **Sign up for Accrupay:** Visit [Accrupay](https://accru.com) to create an account
+2. **Get API Keys:** Obtain your public and secret keys from the Accrupay dashboard
+3. **Configure Environment Variables:** Add the keys to your `.env` file (frontend) and Supabase secrets (backend)
+4. **Deploy Payment Edge Function:** The `payments` edge function handles payment sessions and confirmations
+
+### Payment Flow:
+1. Customer selects tickets and submits the event form
+2. Order is created with `PENDING` status
+3. Customer is redirected to checkout page (`/checkout/:orderId`)
+4. Payment session is initialized with Accrupay/Nuvei
+5. Customer completes payment through Accrupay checkout interface
+6. Payment is confirmed and order status is updated to `PAID`
+7. Ticket inventory is automatically updated
 
 ## Usage
 

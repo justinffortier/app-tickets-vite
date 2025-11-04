@@ -19,13 +19,16 @@
     "deploy:all": "supabase functions deploy && supabase db push && firebase deploy --only hosting"
   },
   "dependencies": {
+    "@accrupay/node": "^0.14.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-brands-svg-icons": "^6.2.1",
     "@fortawesome/free-regular-svg-icons": "^6.2.1",
     "@fortawesome/free-solid-svg-icons": "^6.2.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@fyclabs/tools-fyc-react": "^0.0.3",
+    "@react-google-maps/api": "^2.20.7",
     "@supabase/supabase-js": "^2.76.1",
+    "accru-pay-react": "https://github.com/accruteam/sdk-accrupay-react.git#0.1.0-alpha.4",
     "bootstrap": "^5.2.3",
     "bootstrap-sass": "^3.4.1",
     "date-fns": "^4.1.0",

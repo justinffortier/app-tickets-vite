@@ -284,6 +284,25 @@ export const edgeFunctionHelpers = {
       body: { action: 'incrementUsage', id },
     }),
   },
+
+  payments: {
+    createPaymentSession: (orderId) => callEdgeFunction('payments', {
+      method: 'POST',
+      body: { action: 'createPaymentSession', orderId },
+    }),
+    confirmPayment: (orderId, paymentData) => callEdgeFunction('payments', {
+      method: 'POST',
+      body: { action: 'confirmPayment', orderId, paymentData },
+    }),
+    handleWebhook: (webhookData) => callEdgeFunction('payments', {
+      method: 'POST',
+      body: { action: 'handleWebhook', webhookData },
+    }),
+    getPaymentSession: (orderId) => callEdgeFunction('payments', {
+      method: 'POST',
+      body: { action: 'getPaymentSession', orderId },
+    }),
+  },
 };
 
 export default callEdgeFunction;

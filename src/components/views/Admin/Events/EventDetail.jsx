@@ -5,6 +5,7 @@ import { faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import { $events, $tickets } from '@src/signals';
 import Loader from '@src/components/global/Loader';
+import GooglePlacesAutocomplete from '@src/components/global/Inputs/GooglePlacesAutocomplete';
 import TicketsManager from './TicketsManager';
 import DiscountsManager from './DiscountsManager';
 import FormsManager from './FormsManager';
@@ -117,11 +118,11 @@ function EventDetail() {
 
                     <Form.Group className="mb-24">
                       <Form.Label>Location</Form.Label>
-                      <Form.Control
-                        type="text"
+                      <GooglePlacesAutocomplete
+                        signal={$eventForm}
                         name="location"
                         value={formData.location}
-                        onChange={handleChange}
+                        placeholder="Search for a location"
                       />
                     </Form.Group>
 

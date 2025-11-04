@@ -18,17 +18,47 @@
   border-bottom-right-radius: 15px !important;
 }
 
-.event-form-embed {
-  .light {
+.light {
+  background: $white;
+  color: $black;
+  .card {
     background: $white;
     color: $black;
+    border: none;
   }
-  .dark {
+  input, textarea, select {
+    background: $white !important;
+    color: $black !important;
+    border: 1px solid $grey-800 !important;
+    border-radius: 5px !important;
+  }
+}
+.dark {
+  background: $grey-900;
+  color: $white;
+  .card {
     background: $grey-900;
     color: $white;
+    border: none;
   }
-  .transparent {
+  input, textarea, select {
+    background: $grey-900 !important;
+    color: $white !important;
+    border: 1px solid $grey-800 !important;
+    border-radius: 5px !important;
+  }
+}
+.transparent {
+  background: transparent;
+  color: inherit;
+  .card {
     background: transparent;
     color: inherit;
+    border: none;
+  }
+  input, textarea, select {
+    background: transparent !important;
+    color: inherit !important;
+    border: none !important;
   }
 }

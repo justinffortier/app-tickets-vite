@@ -9,7 +9,7 @@ function EmbedPage() {
 
   const handleSubmitSuccess = (data) => {
     if (data.order) {
-      window.location.href = `/checkout/${data.order.id}`;
+      window.location.href = `/embed/checkout/${data.order.id}`;
     } else {
       alert('Form submitted successfully!');
     }

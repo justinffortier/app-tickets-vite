@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
         const { data: order, error } = await supabaseClient
           .from("orders")
           .select(
-            "*, events(title), order_items(*, ticket_types(name)), discount_codes(code, type, value)"
+            "*, events(title), order_items(*, ticket_types(name)), discount_codes(code, type, value), form_submissions(forms(*))"
           )
           .eq("id", id)
           .maybeSingle();

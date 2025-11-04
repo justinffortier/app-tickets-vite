@@ -8,7 +8,7 @@ import AppWrapper from './components/global/AppWrapper';
 import Alert from './components/global/Alert';
 import { Dashboard } from './components/views/Admin';
 import { EventsList, EventForm, EventDetail } from './components/views/Admin/Events';
-import { EmbedPage } from './components/embed';
+import { EmbedPage, Checkout, OrderConfirmation } from './components/embed';
 import { Login, Signup, ForgotPassword } from './components/views/Auth';
 
 function App() {
@@ -25,6 +25,8 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/embed/form/:formId" element={<EmbedPage />} />
+              <Route path="/embed/checkout/:orderId" element={<Checkout />} />
+              <Route path="/embed/order-confirmation/:orderId" element={<OrderConfirmation />} />
             </Route>
 
             <Route element={<PrivateRoutes />}>

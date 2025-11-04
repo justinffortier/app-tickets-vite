@@ -11,7 +11,7 @@ Done
 
 Must Have
 Add Address(s) to each event
-Add Accru
+√ Add Accru
 
 Nice to Have
 Change Events into context menu

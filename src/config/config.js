@@ -4,6 +4,7 @@ export const getConfig = (key) => {
   const base = {
     ENV: env,
     BACKEND_GRAPHQL_ENDPOINT: import.meta.env.VITE_APP_BASE_URL,
+    GOOGLE_MAPS_API_KEY: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
     VITE_APP_FIREBASE_CONFIG: {
       apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'Missing API Key',
       authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'Missing Auth Domain',

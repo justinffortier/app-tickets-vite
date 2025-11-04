@@ -46,3 +46,10 @@ export const $embed = Signal({
   error: null,
   isFormValid: false,
 });
+export const $checkout = Signal({
+  order: null,
+  form: null,
+  paymentSession: null,
+  error: null,
+  paymentStatus: null,
+});

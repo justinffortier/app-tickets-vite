@@ -190,15 +190,18 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
                           {available > 0 ? `${available} available` : 'Sold out'}
                         </Col>
                         <Col md={3}>
+                          <Form.Label>Quantity</Form.Label>
                           <UniversalInput
-                            type="number"
+                            as="select"
                             name={`ticket_${ticket.id}`}
-                            min="0"
-                            max={available}
                             value={selectedTickets[ticket.id] || 0}
-                            customOnChange={(e) => handleTicketChange(ticket.id, e.target.value)}
+                            customOnChange={e => handleTicketChange(ticket.id, Number(e.target.value))}
                             disabled={available === 0}
-                          />
+                          >
+                            {[...Array(available + 1).keys()].map(n => (
+                              <option key={n} value={n}>{n}</option>
+                            ))}
+                          </UniversalInput>
                         </Col>
                       </Row>
                     </Card.Body>
@@ -208,15 +211,21 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
 
               <div className="mb-24">
                 <Form.Label>Discount Code</Form.Label>
-                <div className="input-group">
-                  <UniversalInput
-                    type="text"
-                    name="discountCode"
-                    placeholder="Enter code"
-                    value={discountCode}
-                    customOnChange={(e) => updateDiscountCode(e.target.value.toUpperCase())}
-                  />
-                  <Button variant="outline-secondary" onClick={() => handleApplyDiscount(formId, eventId)}>
+                <UniversalInput
+                  type="text"
+                  name="discountCode"
+                  placeholder="Enter code"
+                  value={discountCode}
+                  customOnChange={(e) => updateDiscountCode(e.target.value.toUpperCase())}
+                  className="flex-grow-1"
+                  style={{ minWidth: 0 }}
+                />
+                <div className="mt-8">
+                  <Button
+                    variant="dark"
+                    onClick={() => handleApplyDiscount(formId, eventId)}
+                    style={{ whiteSpace: 'nowrap' }}
+                  >
                     Apply
                   </Button>
                 </div>

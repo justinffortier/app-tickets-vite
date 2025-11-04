@@ -4,6 +4,7 @@ import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import Loader from '@src/components/global/Loader';
 import UniversalInput from '@src/components/global/Inputs/UniversalInput';
+import GooglePlacesAutocomplete from '@src/components/global/Inputs/GooglePlacesAutocomplete';
 import { $eventForm, loadEvent, handleSubmit } from './_helpers/eventForm.events';
 
 function EventForm() {
@@ -81,10 +82,11 @@ function EventForm() {
 
                 <Form.Group className="mb-24">
                   <Form.Label>Location</Form.Label>
-                  <UniversalInput
-                    type="text"
-                    name="location"
+                  <GooglePlacesAutocomplete
                     signal={$eventForm}
+                    name="location"
+                    value={$eventForm.value.location}
+                    placeholder="Search for a location"
                   />
                 </Form.Group>
 
