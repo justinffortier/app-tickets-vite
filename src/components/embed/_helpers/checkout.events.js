@@ -1,6 +1,6 @@
 import { $checkout } from '@src/signals';
 import paymentsAPI from '@src/api/payments.api';
-import { isProcessingPayment } from './checkout.consts';
+import { isProcessingPayment, showTestCards } from './checkout.consts';
 
 // Build URL with order details as query parameters
 const buildConfirmationUrl = (baseUrl, order) => {
@@ -138,4 +138,8 @@ export const retryPayment = () => {
     error: null,
     paymentStatus: null,
   });
+};
+
+export const toggleTestCards = () => {
+  showTestCards.value = !showTestCards.value;
 };

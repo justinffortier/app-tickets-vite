@@ -18,10 +18,6 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
   const { isLoading } = $embed.value;
   const { error, formData, selectedTickets, discountCode, appliedDiscount, totals, isFormValid } = $embed.value;
 
-  useEffectAsync(() => {
-    document.body.className = '';
-  }, []);
-
   useEffectAsync(async () => {
     await loadFormData(formId, eventId);
   }, [formId, eventId]);
@@ -125,7 +121,13 @@ function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
     }
   };
 
-  if (isLoading) return <Loader />;
+  if (isLoading) {
+    return (
+      <div className="min-vh-100 w-100 d-flex justify-content-center align-items-center">
+        <Loader className="text-center" />
+      </div>
+    );
+  }
 
   return (
     <Card className={`event-form-embed ${theme} border-0`}>

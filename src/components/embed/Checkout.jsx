@@ -9,7 +9,7 @@ import { useState } from 'react';
 import paymentsAPI from '@src/api/payments.api';
 import * as resolvers from './_helpers/checkout.resolvers';
 import * as events from './_helpers/checkout.events';
-import { isProcessingPayment } from './_helpers/checkout.consts';
+import { isProcessingPayment, showTestCards } from './_helpers/checkout.consts';
 
 const PAYMENT_PROCESSOR = 'nuvei';
 
@@ -127,7 +127,6 @@ function Checkout() {
       const providersData = await paymentsAPI.getProviders();
       setProviders(providersData);
     } catch (err) {
-      console.error('Failed to fetch providers:', err);
       // Set fallback empty config if fetch fails
       setProviders([{ name: 'nuvei', config: {} }]);
     }
@@ -140,10 +139,6 @@ function Checkout() {
     }
     return providers;
   };
-
-  useEffectAsync(() => {
-    document.body.className = '';
-  }, []);
 
   useEffectAsync(async () => {
     if (orderId) {
@@ -265,17 +260,6 @@ function Checkout() {
     return null;
   };
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      // Optional: Could add a toast notification here
-      if (window?.showToast) {
-        window.showToast('Copied to clipboard', 'success');
-      }
-    }).catch(err => {
-      console.error('Failed to copy:', err);
-    });
-  };
-
   const renderTestCards = () => {
     // Get environment from providers
     const env = providers?.[0]?.config?.env || providers?.[0]?.config?.environment;
@@ -312,70 +296,69 @@ function Checkout() {
       },
     ];
 
-    const CopyButton = ({ text }) => (
-      <Button
-        variant="link"
-        size="sm"
-        className="p-0 ms-2"
-        style={{ fontSize: '0.75rem', textDecoration: 'none' }}
-        onClick={() => copyToClipboard(text)}
-        title="Copy to clipboard"
-      >
-        📋
-      </Button>
-    );
-
     return (
-      <Alert variant="info" className="mb-24">
-        <Alert.Heading className="h6">
-          🧪 Test Mode - Test Cards Available
-        </Alert.Heading>
-        <small className="text-muted d-block mb-16">
-          Environment: <strong>{env}</strong>
-        </small>
-        <div className="table-responsive">
-          <table className="table table-sm table-bordered mb-0" style={{ fontSize: '0.875rem' }}>
-            <thead>
-              <tr>
-                <th>Scenario</th>
-                <th>Amount</th>
-                <th>Cardholder Name</th>
-                <th>Card Number</th>
-                <th>Expiration</th>
-                <th>CVV</th>
-              </tr>
-            </thead>
-            <tbody>
-              {testCards.map((card, index) => (
-                <tr key={index}>
-                  <td>{card.scenario}</td>
-                  <td>{card.amount}</td>
-                  <td>
-                    <code>{card.cardHolderName}</code>
-                    <CopyButton text={card.cardHolderName} />
-                  </td>
-                  <td>
-                    <code>{card.cardNumber}</code>
-                    <CopyButton text={card.cardNumber} />
-                  </td>
-                  <td>
-                    <code>{card.expiration}</code>
-                    <CopyButton text={card.expiration} />
-                  </td>
-                  <td>
-                    <code>{card.cvv}</code>
-                    <CopyButton text={card.cvv} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Alert>
+      <div className="mb-24">
+        <Button
+          variant="outline-dark"
+          size="sm"
+          onClick={events.toggleTestCards}
+          className="mb-16"
+        >
+          {showTestCards.value ? 'Hide' : 'Show'} Test Cards
+        </Button>
+
+        {showTestCards.value && (
+          <Alert variant="info">
+            <small className="text-muted d-block mb-16">
+              Environment: <strong>{env}</strong>
+            </small>
+            <div className="table-responsive">
+              <table className="table table-sm table-bordered mb-0" style={{ fontSize: '0.875rem' }}>
+                <thead>
+                  <tr>
+                    <th>Scenario</th>
+                    <th>Amount</th>
+                    <th>Name</th>
+                    <th>CC Number</th>
+                    <th>Exp Date</th>
+                    <th>CVV</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {testCards.map((card, index) => (
+                    <tr key={index}>
+                      <td>{card.scenario}</td>
+                      <td>{card.amount}</td>
+                      <td>
+                        <code>{card.cardHolderName}</code>
+                      </td>
+                      <td>
+                        <code>{card.cardNumber}</code>
+                      </td>
+                      <td>
+                        <code>{card.expiration}</code>
+                      </td>
+                      <td>
+                        <code>{card.cvv}</code>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Alert>
+        )}
+      </div>
     );
   };
 
-  if (isLoading) return <Loader />;
+  if (isLoading) {
+    return (
+      <div className="min-vh-100 w-100 d-flex justify-content-center align-items-center">
+        <Loader className="text-center" />
+      </div>
+    );
+  }
 
   if (error && !order) {
     return (
@@ -416,10 +399,14 @@ function Checkout() {
           {order && providers && paymentSession && !paymentStatus && (
             <Card>
               <Card.Body>
-                <h5 className="mb-24">Payment Information</h5>
-
-                {renderTestCards()}
-
+                <Row>
+                  <Col md={4}>
+                    <h5 className="mb-24">Payment Information</h5>
+                  </Col>
+                  <Col md={8} className="text-end">
+                    {renderTestCards()}
+                  </Col>
+                </Row>
                 {paymentSession.sessionToken ? (
                   <AccruPay
                     sessionToken={paymentSession.sessionToken}

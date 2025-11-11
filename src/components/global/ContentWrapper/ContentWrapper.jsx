@@ -6,7 +6,7 @@ import AdminNav from '@src/components/global/AdminNav';
 const ContentWrapper = ({ children, className, fluid }) => {
   if ($global.value?.isLoading) {
     return (
-      <div>
+      <div className="bg-grey-800 text-white">
         <div className="min-vh-100 w-100 d-flex justify-content-center align-items-center flex-grow-1">
           <Loader
             message="Loading..."
@@ -17,7 +17,7 @@ const ContentWrapper = ({ children, className, fluid }) => {
     );
   }
   return (
-    <div>
+    <div className="bg-grey-800 text-white">
       <AdminNav />
       <Container fluid={!!fluid} className={className}>
         {children}
