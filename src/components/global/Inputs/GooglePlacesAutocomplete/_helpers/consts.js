@@ -5,4 +5,3 @@ export const $autocomplete = signal(null);
 
 // Signal for the selected place
 export const $selectedPlace = signal(null);
-

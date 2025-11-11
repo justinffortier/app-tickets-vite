@@ -1,2 +1,3 @@
-export { default } from './GooglePlacesAutocomplete';
+import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 
+export default GooglePlacesAutocomplete;

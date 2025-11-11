@@ -44,7 +44,6 @@ export function initializeAccruPayClient() {
       },
     });
 
-    console.log(`AccruPay client initialized successfully (environment: ${environment})`);
     return accruPay;
   } catch (initError) {
     console.error("Failed to initialize AccruPay client:", initError);

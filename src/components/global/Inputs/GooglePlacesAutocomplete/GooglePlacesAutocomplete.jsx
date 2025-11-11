@@ -35,13 +35,10 @@ function GooglePlacesAutocomplete({
       return;
     }
 
-    console.log('Loading Google Maps with API key:', apiKey ? 'API key present' : 'No API key');
-
     // Function to check if Places API with extended library is ready
     const checkPlacesReady = () => {
       if (window.google && window.google.maps && window.google.maps.places &&
         (window.google.maps.places.Autocomplete || window.google.maps.places.PlaceAutocompleteElement)) {
-        console.log('Google Maps Places API is ready');
         setIsLoaded(true);
         return true;
       }
@@ -50,14 +47,12 @@ function GooglePlacesAutocomplete({
 
     // Check if Google Maps is already loaded
     if (checkPlacesReady()) {
-      console.log('Google Maps already loaded');
       return;
     }
 
     // Check if script is already being loaded
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existingScript) {
-      console.log('Google Maps script already exists, waiting for load...');
       // Poll for Places API to be ready
       const pollInterval = setInterval(() => {
         if (checkPlacesReady()) {
@@ -81,14 +76,12 @@ function GooglePlacesAutocomplete({
 
     // Define the callback
     window[callbackName] = () => {
-      console.log('Google Maps callback triggered');
       // Wait a bit for places library to fully initialize
-      setTimeout(() => {
-        if (checkPlacesReady()) {
-          console.log('Google Maps script loaded successfully');
-        } else {
+      const timeout = setTimeout(() => {
+        if (!checkPlacesReady()) {
           console.error('Places API not available after callback');
           setLoadError(true);
+          clearTimeout(timeout);
         }
       }, 100);
     };
@@ -115,17 +108,6 @@ function GooglePlacesAutocomplete({
 
   // Initialize autocomplete widget when loaded
   useEffect(() => {
-    if (!isLoaded || !autocompleteWidgetRef.current || !window.google) {
-      console.log('Autocomplete initialization skipped:', {
-        isLoaded,
-        hasWidgetRef: !!autocompleteWidgetRef.current,
-        hasGoogle: !!window.google,
-      });
-      return;
-    }
-
-    console.log('Initializing Google Places Autocomplete...');
-
     try {
       const input = autocompleteWidgetRef.current.querySelector('input');
 
@@ -140,13 +122,9 @@ function GooglePlacesAutocomplete({
         types: ['establishment', 'geocode'],
       });
 
-      console.log('Autocomplete initialized successfully');
-
       // Add place_changed listener
       autocomplete.addListener('place_changed', () => {
-        console.log('Place changed event triggered');
         const place = autocomplete.getPlace();
-        console.log('Selected place:', place);
 
         if (place && place.formatted_address && place.geometry) {
           setInputValue(place.formatted_address);

@@ -10,9 +10,9 @@ const buildConfirmationUrl = (baseUrl, order) => {
     // If it's a relative URL, prepend current origin
     absoluteUrl = `${window.location.origin}${baseUrl.startsWith('/') ? '' : '/'}${baseUrl}`;
   }
-  
+
   const url = new URL(absoluteUrl);
-  
+
   // Add all order details as query parameters
   url.searchParams.set('orderId', order.id);
   url.searchParams.set('customerEmail', order.customer_email || '');
@@ -25,7 +25,7 @@ const buildConfirmationUrl = (baseUrl, order) => {
   url.searchParams.set('discountCode', order.discount_codes?.code || '');
   url.searchParams.set('createdAt', order.created_at || '');
   url.searchParams.set('paymentIntentId', order.payment_intent_id || '');
-  
+
   // Serialize order items as JSON string
   if (order.order_items && order.order_items.length > 0) {
     const itemsData = order.order_items.map(item => ({
@@ -36,7 +36,7 @@ const buildConfirmationUrl = (baseUrl, order) => {
     }));
     url.searchParams.set('orderItems', JSON.stringify(itemsData));
   }
-  
+
   return url.toString();
 };
 
@@ -45,24 +45,11 @@ export const handlePaymentSuccess = async (paymentData) => {
     isProcessingPayment.value = true;
     $checkout.update({ error: null });
 
-    const { order, form, confirmationUrlOverride } = $checkout.value;
+    const { order, form, confirmationUrlOverride, isEmbedded } = $checkout.value;
 
-    console.log('Payment success callback received:', paymentData);
-    console.log('Order ID:', order.id);
-
-    // Confirm payment with backend
     await paymentsAPI.confirmPayment(order.id, paymentData);
-
-    $checkout.update({
-      paymentStatus: 'completed',
-    });
-
-    // Determine redirect URL with priority:
-    // 1. Query parameter override (confirmationUrlOverride)
-    // 2. Form's order_confirmation_url
-    // 3. Default fallback
     let redirectUrl;
-    
+
     if (confirmationUrlOverride) {
       // Use query parameter override
       redirectUrl = buildConfirmationUrl(confirmationUrlOverride, order);
@@ -105,20 +92,29 @@ export const handlePaymentSuccess = async (paymentData) => {
       }, '*'); // In production, you might want to specify the origin
     }
 
-    // Redirect to success page or show success message
-    // Only redirect if not in iframe (let parent handle redirect)
-    if (!window.parent || window.parent === window) {
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 2000);
+    if (isEmbedded) {
+      // When embedded, don't update UI - just let parent handle redirect
+      // Keep the processing state so iframe doesn't show success screen
+      return;
     }
+
+    // Standalone mode - show success message and redirect
+    $checkout.update({
+      paymentStatus: 'completed',
+    });
+
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 2000);
   } catch (err) {
     $checkout.update({
       error: err.message || 'Payment confirmation failed',
       paymentStatus: 'failed',
     });
   } finally {
-    isProcessingPayment.value = false;
+    if (!$checkout.value.isEmbedded) {
+      isProcessingPayment.value = false;
+    }
   }
 };
 

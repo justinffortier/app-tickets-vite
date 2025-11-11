@@ -1,2 +1,3 @@
-export { default } from './CardLoader';
+import CardLoader from './CardLoader';
 
+export default CardLoader;

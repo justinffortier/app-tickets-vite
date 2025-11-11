@@ -41,4 +41,3 @@ export const handleInputChange = (value, onChange) => {
     });
   }
 };
-

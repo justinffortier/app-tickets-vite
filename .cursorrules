@@ -55,6 +55,11 @@ rules:
       - Always render input fields using the UniversalInput component.
       - Do not use `<Form.Control>`, `<input>`, `<textarea>`, or other native/react-bootstrap input components directly in views/forms; always use UniversalInput unless there's a technical limitation.
       - Pass the appropriate signal, name, and props for full integration and reactivity.
+  # 8. Console usage
+  - description: "Avoid the use of console.log and other console statements in production code."
+    enforcement: |
+      - Remove all instances of console.log, console.error, console.warn, and similar console statements before code is merged or deployed.
+      - Use a proper logging utility or error reporting service if debugging or audit trails are required.
 
 structure_generation:
 

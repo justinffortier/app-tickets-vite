@@ -12,8 +12,6 @@ export async function getProviders(
       transactionProvider: TRANSACTION_PROVIDER.NUVEI,
     });
 
-    console.log("Provider config fetched successfully:", preSessionData);
-
     return {
       data: [{
         name: 'nuvei',

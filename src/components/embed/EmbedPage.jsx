@@ -11,10 +11,15 @@ function EmbedPage() {
 
   const handleSubmitSuccess = (data) => {
     if (data.order) {
-      // Pass confirmationUrl as query param to checkout if present
-      const checkoutUrl = confirmationUrlOverride
-        ? `/embed/checkout/${data.order.id}?confirmationUrl=${encodeURIComponent(confirmationUrlOverride)}`
-        : `/embed/checkout/${data.order.id}`;
+      // Build checkout URL with embed=true and optional confirmationUrl
+      const params = new URLSearchParams();
+      params.set('embed', 'true'); // Indicate we're in an iframe
+
+      if (confirmationUrlOverride) {
+        params.set('confirmationUrl', confirmationUrlOverride);
+      }
+
+      const checkoutUrl = `/embed/checkout/${data.order.id}?${params.toString()}`;
       window.location.href = checkoutUrl;
     } else {
       alert('Form submitted successfully!');

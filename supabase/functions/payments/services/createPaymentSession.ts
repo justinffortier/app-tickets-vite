@@ -62,9 +62,6 @@ export async function createPaymentSession(
     // Convert amount to bigint (cents)
     const amountInCents = Math.round(parseFloat(order.total) * 100);
 
-    console.log("Creating payment session for order:", order.id);
-    console.log("Amount in cents:", amountInCents);
-
     const sessionData = {
       transactionProvider: TRANSACTION_PROVIDER.NUVEI,
       data: {
@@ -88,8 +85,7 @@ export async function createPaymentSession(
       },
     };
 
-    console.log("Session data:", JSON.stringify(sessionData, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
+    typeof value === 'bigint' ? value.toString() : value
     ));
 
     const transaction = await accruPay.transactions.startClientPaymentSession(sessionData);

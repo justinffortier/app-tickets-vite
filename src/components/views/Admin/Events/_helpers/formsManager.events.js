@@ -39,7 +39,6 @@ export const loadForms = async (eventId) => {
     const data = await formsAPI.getAll({ event_id: eventId });
     $forms.update({ list: data || [] });
   } catch (error) {
-    console.error('Error loading forms:', error);
     showToast('Error loading forms', 'error');
   } finally {
     $forms.loadingEnd();
@@ -85,21 +84,17 @@ export const handleCloseModal = () => {
 export const handleChange = (e) => {
   const { name, value, type, checked } = e.target;
   const newValue = type === 'checkbox' ? checked : value;
-  console.log('handleChange called:', { name, value, type, checked, newValue });
-  console.log('Before update:', $formManagerForm.value);
 
   // Try setting the entire object to force reactivity
   $formManagerForm.value = {
     ...$formManagerForm.value,
     [name]: newValue,
   };
-  console.log('After update:', $formManagerForm.value);
 };
 
 export const handleTicketSelection = (ticketId) => {
   const currentIds = $formManagerForm.value.available_ticket_ids;
   const isSelected = currentIds.includes(ticketId);
-  console.log('handleTicketSelection called:', { ticketId, currentIds, isSelected });
 
   const newIds = isSelected
     ? currentIds.filter(id => id !== ticketId)
@@ -110,7 +105,6 @@ export const handleTicketSelection = (ticketId) => {
     ...$formManagerForm.value,
     available_ticket_ids: newIds,
   };
-  console.log('After ticket update:', $formManagerForm.value.available_ticket_ids);
 };
 
 export const handleFieldChange = (e) => {
@@ -277,7 +271,7 @@ export const handlePublish = async (formId, isPublished, eventId) => {
 
 export const handleShowEmbed = (formId) => {
   const embedCode = `<iframe 
-  src="${window.location.origin}/embed/form/${formId}" 
+  src="${window.location.origin}/embed/form/${formId}?embed=true" 
   width="100%" 
   height="800"
   frameborder="0"
@@ -296,8 +290,6 @@ window.addEventListener('message', (event) => {
     window.location.href = redirectUrl;
     
     // Or handle the redirect manually with order details:
-    // console.log('Order completed:', orderDetails);
-    // console.log('Full order:', order);
     // window.location.href = redirectUrl;
   }
 });`;

@@ -420,11 +420,11 @@ function FormsManager({ eventId, tickets, onUpdate }) {
             readOnly
             className="font-monospace small mb-24"
           />
-          
+
           <div className="mb-24">
             <h6 className="mb-8">Listen for Order Complete Event</h6>
             <p className="text-muted small mb-16">
-              The iframe will emit a <code>postMessage</code> event when an order is completed. 
+              The iframe will emit a <code>postMessage</code> event when an order is completed.
               Add this JavaScript to your parent page to handle the redirect:
             </p>
             <Form.Control
@@ -434,9 +434,9 @@ function FormsManager({ eventId, tickets, onUpdate }) {
               className="font-monospace small mb-16"
               value={eventListenerCode || ''}
             />
-            <Button 
-              variant="outline-primary" 
-              onClick={handleCopyEventListener} 
+            <Button
+              variant="outline-primary"
+              onClick={handleCopyEventListener}
               className="w-100 mb-16"
               size="sm"
             >
@@ -444,7 +444,7 @@ function FormsManager({ eventId, tickets, onUpdate }) {
               Copy Event Listener Code
             </Button>
           </div>
-          
+
           <Button variant="primary" onClick={handleCopyEmbed} className="w-100">
             <FontAwesomeIcon icon={faCopy} className="me-2" />
             Copy Embed Code to Clipboard

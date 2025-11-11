@@ -105,13 +105,19 @@ function Checkout() {
   const theme = $checkout.value.form?.theme || 'light';
   const [providers, setProviders] = useState(null);
 
-  // Read confirmationUrl from query params and store in checkout signal
+  // Read confirmationUrl and embed flag from query params
   useEffectAsync(() => {
     const confirmationUrlOverride = searchParams.get('confirmationUrl');
+    const isEmbedded = searchParams.get('embed') === 'true';
+
     if (confirmationUrlOverride) {
       // Decode the URL in case it was encoded
       const decodedUrl = decodeURIComponent(confirmationUrlOverride);
       $checkout.update({ confirmationUrlOverride: decodedUrl });
+    }
+
+    if (isEmbedded) {
+      $checkout.update({ isEmbedded: true });
     }
   }, [searchParams]);
 
@@ -120,10 +126,6 @@ function Checkout() {
     try {
       const providersData = await paymentsAPI.getProviders();
       setProviders(providersData);
-
-      // Log environment for debugging
-      const env = providersData?.[0]?.config?.env || providersData?.[0]?.config?.environment;
-      console.log('AccruPay Environment:', env);
     } catch (err) {
       console.error('Failed to fetch providers:', err);
       // Set fallback empty config if fetch fails
@@ -134,10 +136,8 @@ function Checkout() {
   // Function to get providers configuration for AccruPay React SDK
   const getProviders = () => {
     if (!providers) {
-      console.log('Providers not loaded yet, returning empty array');
       return [];
     }
-    console.log('Returning providers:', providers);
     return providers;
   };
 
@@ -268,7 +268,9 @@ function Checkout() {
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
       // Optional: Could add a toast notification here
-      console.log('Copied to clipboard:', text);
+      if (window?.showToast) {
+        window.showToast('Copied to clipboard', 'success');
+      }
     }).catch(err => {
       console.error('Failed to copy:', err);
     });
@@ -277,7 +279,6 @@ function Checkout() {
   const renderTestCards = () => {
     // Get environment from providers
     const env = providers?.[0]?.config?.env || providers?.[0]?.config?.environment;
-    console.log('env - renderTestCards', env);
 
     // Only show test cards in dev/sandbox/qa environments
     if (env !== 'int') {
