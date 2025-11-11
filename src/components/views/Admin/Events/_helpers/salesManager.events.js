@@ -19,4 +19,3 @@ export const loadSales = async (eventId) => {
     $sales.loadingEnd();
   }
 };
-

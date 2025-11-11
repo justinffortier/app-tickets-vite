@@ -15,6 +15,7 @@ import {
 function EventForm({ formId, eventId, onSubmitSuccess, theme = 'light' }) {
   const { form } = $embed.value;
   const { tickets } = $embed.value;
+  console.log('tickets', $embed.value);
   const { isLoading } = $embed.value;
   const { error, formData, selectedTickets, discountCode, appliedDiscount, totals, isFormValid } = $embed.value;
 

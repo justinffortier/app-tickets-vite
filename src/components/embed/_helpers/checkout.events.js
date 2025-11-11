@@ -13,7 +13,7 @@ export const handlePaymentSuccess = async (paymentData) => {
     console.log('Order ID:', order.id);
 
     // Confirm payment with backend
-    await paymentsAPI.confirmPayment($checkout.value.paymentSession?.transactionId, paymentData);
+    await paymentsAPI.confirmPayment(order.id, paymentData);
 
     $checkout.update({
       paymentStatus: 'completed',

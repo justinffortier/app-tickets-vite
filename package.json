@@ -19,7 +19,7 @@
     "deploy:all": "supabase functions deploy && supabase db push && firebase deploy --only hosting"
   },
   "dependencies": {
-    "@accrupay/node": "^0.14.0",
+    "@accrupay/node": "^0.15.1",
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-brands-svg-icons": "^6.2.1",
     "@fortawesome/free-regular-svg-icons": "^6.2.1",

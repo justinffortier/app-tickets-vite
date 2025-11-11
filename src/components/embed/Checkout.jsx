@@ -83,6 +83,10 @@ function Checkout() {
     try {
       const providersData = await paymentsAPI.getProviders();
       setProviders(providersData);
+
+      // Log environment for debugging
+      const env = providersData?.[0]?.config?.env || providersData?.[0]?.config?.environment;
+      console.log('AccruPay Environment:', env);
     } catch (err) {
       console.error('Failed to fetch providers:', err);
       // Set fallback empty config if fetch fails
@@ -224,6 +228,115 @@ function Checkout() {
     return null;
   };
 
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // Optional: Could add a toast notification here
+      console.log('Copied to clipboard:', text);
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
+  };
+
+  const renderTestCards = () => {
+    // Get environment from providers
+    const env = providers?.[0]?.config?.env || providers?.[0]?.config?.environment;
+    console.log('env - renderTestCards', env);
+
+    // Only show test cards in dev/sandbox/qa environments
+    if (env !== 'int') {
+      return null;
+    }
+
+    const testCards = [
+      {
+        scenario: 'Frictionless',
+        amount: '>= 150',
+        cardHolderName: 'FL-BRW1',
+        cardNumber: '4000020951595032',
+        expiration: '01/30',
+        cvv: '123',
+      },
+      {
+        scenario: 'Challenge',
+        amount: '151',
+        cardHolderName: 'CL-BRW2',
+        cardNumber: '2221008123677736',
+        expiration: '01/30',
+        cvv: '123',
+      },
+      {
+        scenario: 'non-3DS',
+        amount: '10',
+        cardHolderName: 'Jane Smith',
+        cardNumber: '4000027891380961',
+        expiration: '01/30',
+        cvv: '123',
+      },
+    ];
+
+    const CopyButton = ({ text }) => (
+      <Button
+        variant="link"
+        size="sm"
+        className="p-0 ms-2"
+        style={{ fontSize: '0.75rem', textDecoration: 'none' }}
+        onClick={() => copyToClipboard(text)}
+        title="Copy to clipboard"
+      >
+        📋
+      </Button>
+    );
+
+    return (
+      <Alert variant="info" className="mb-24">
+        <Alert.Heading className="h6">
+          🧪 Test Mode - Test Cards Available
+        </Alert.Heading>
+        <small className="text-muted d-block mb-16">
+          Environment: <strong>{env}</strong>
+        </small>
+        <div className="table-responsive">
+          <table className="table table-sm table-bordered mb-0" style={{ fontSize: '0.875rem' }}>
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Amount</th>
+                <th>Cardholder Name</th>
+                <th>Card Number</th>
+                <th>Expiration</th>
+                <th>CVV</th>
+              </tr>
+            </thead>
+            <tbody>
+              {testCards.map((card, index) => (
+                <tr key={index}>
+                  <td>{card.scenario}</td>
+                  <td>{card.amount}</td>
+                  <td>
+                    <code>{card.cardHolderName}</code>
+                    <CopyButton text={card.cardHolderName} />
+                  </td>
+                  <td>
+                    <code>{card.cardNumber}</code>
+                    <CopyButton text={card.cardNumber} />
+                  </td>
+                  <td>
+                    <code>{card.expiration}</code>
+                    <CopyButton text={card.expiration} />
+                  </td>
+                  <td>
+                    <code>{card.cvv}</code>
+                    <CopyButton text={card.cvv} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Alert>
+    );
+  };
+
   if (isLoading) return <Loader />;
 
   if (error && !order) {
@@ -260,6 +373,9 @@ function Checkout() {
             <Card>
               <Card.Body>
                 <h5 className="mb-24">Payment Information</h5>
+
+                {renderTestCards()}
+
                 {paymentSession.sessionToken ? (
                   <AccruPay
                     sessionToken={paymentSession.sessionToken}

@@ -7,14 +7,14 @@
   resolved "https://registry.npmjs.org/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@accrupay/node@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@accrupay/node/-/node-0.14.0.tgz#8471582173499a0d160afe0482c55eb8746a38be"
-  integrity sha512-6znyTV/scu4Cy90an3sSspik4AX4WEhnJrD/LD6DoLZ+rwgfXxH+SOzCFsR2gii19vejy08rFz9FiP1dTqiw2A==
+"@accrupay/node@^0.15.1":
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/@accrupay/node/-/node-0.15.1.tgz#21f02af799b27c002c7c0daef4bfb3347390b4c1"
+  integrity sha512-mkdkd8Bf/r+Agi/vfOlxQY5FnbV3pHxotAnV5qHdxgCKWbzHL6n0EIfeZJAtt8ANTI4X/FOzK5Aul5U/Lks6lQ==
   dependencies:
     "@apollo/client" "^3.13.9"
     apollo-link-scalars "^4.0.3"
-    graphql "^16.11.0"
+    graphql "^16.12.0"
     graphql-scalars "^1.25.0"
 
 "@ampproject/remapping@^2.2.0":
@@ -2653,7 +2653,7 @@ graphql-tag@^2.12.6:
   dependencies:
     tslib "^2.1.0"
 
-graphql@^16.11.0:
+graphql@^16.12.0:
   version "16.12.0"
   resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.12.0.tgz#28cc2462435b1ac3fdc6976d030cef83a0c13ac7"
   integrity sha512-DKKrynuQRne0PNpEbzuEdHlYOMksHSUI8Zc9Unei5gTsMNA2/vMpoMz/yKba50pejK56qj98qM0SjYxAKi13gQ==
