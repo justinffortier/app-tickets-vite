@@ -85,9 +85,6 @@ export async function createPaymentSession(
       },
     };
 
-    typeof value === 'bigint' ? value.toString() : value
-    ));
-
     const transaction = await accruPay.transactions.startClientPaymentSession(sessionData);
 
     // Get pre-session data for React SDK
