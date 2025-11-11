@@ -28,6 +28,7 @@ import {
   handleShowEmbed,
   handleCloseEmbedModal,
   handleCopyEmbed,
+  handleCopyEventListener,
 } from './_helpers/formsManager.events';
 
 const FIELD_TYPES = [
@@ -90,7 +91,7 @@ function DraggableField({ field, index, onMoveField, onEdit, onDelete }) {
 
 function FormsManager({ eventId, tickets, onUpdate }) {
   const forms = $forms.value.list;
-  const { showModal, showEmbedModal, editingForm, embedCode } = $formManagerUI.value;
+  const { showModal, showEmbedModal, editingForm, embedCode, eventListenerCode } = $formManagerUI.value;
   const formData = $formManagerForm.value;
   const currentField = $currentFormField.value;
 
@@ -256,6 +257,19 @@ function FormsManager({ eventId, tickets, onUpdate }) {
                   </Form.Text>
                 </Form.Group>
 
+                <Form.Group className="mb-24">
+                  <Form.Label>Order Confirmation URL</Form.Label>
+                  <UniversalInput
+                    type="text"
+                    name="order_confirmation_url"
+                    signal={$formManagerForm}
+                    placeholder="https://example.com/confirmation or http://localhost:3000/confirmation"
+                  />
+                  <Form.Text className="text-muted">
+                    Optional: Custom URL to redirect users after successful payment. Order details will be passed as URL parameters. Leave empty to use default confirmation page.
+                  </Form.Text>
+                </Form.Group>
+
                 <div className="mb-24">
                   <Form.Label>Available Tickets</Form.Label>
                   {tickets.length === 0 ? (
@@ -391,7 +405,7 @@ function FormsManager({ eventId, tickets, onUpdate }) {
       </Modal>
 
       {/* Embed Code Modal */}
-      <Modal show={showEmbedModal} onHide={handleCloseEmbedModal}>
+      <Modal show={showEmbedModal} onHide={handleCloseEmbedModal} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Embed Code</Modal.Title>
         </Modal.Header>
@@ -401,14 +415,39 @@ function FormsManager({ eventId, tickets, onUpdate }) {
           </p>
           <Form.Control
             as="textarea"
-            rows={8}
+            rows={6}
             value={embedCode}
             readOnly
-            className="font-monospace small mb-16"
+            className="font-monospace small mb-24"
           />
+          
+          <div className="mb-24">
+            <h6 className="mb-8">Listen for Order Complete Event</h6>
+            <p className="text-muted small mb-16">
+              The iframe will emit a <code>postMessage</code> event when an order is completed. 
+              Add this JavaScript to your parent page to handle the redirect:
+            </p>
+            <Form.Control
+              as="textarea"
+              rows={12}
+              readOnly
+              className="font-monospace small mb-16"
+              value={eventListenerCode || ''}
+            />
+            <Button 
+              variant="outline-primary" 
+              onClick={handleCopyEventListener} 
+              className="w-100 mb-16"
+              size="sm"
+            >
+              <FontAwesomeIcon icon={faCopy} className="me-2" />
+              Copy Event Listener Code
+            </Button>
+          </div>
+          
           <Button variant="primary" onClick={handleCopyEmbed} className="w-100">
             <FontAwesomeIcon icon={faCopy} className="me-2" />
-            Copy to Clipboard
+            Copy Embed Code to Clipboard
           </Button>
         </Modal.Body>
       </Modal>

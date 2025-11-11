@@ -13,6 +13,7 @@ export const $formManagerForm = Signal({
   show_title: true,
   show_description: true,
   theme: 'light',
+  order_confirmation_url: '',
 });
 
 export const $formManagerUI = Signal({
@@ -20,6 +21,7 @@ export const $formManagerUI = Signal({
   showEmbedModal: false,
   editingForm: null,
   embedCode: '',
+  eventListenerCode: '',
 });
 
 export const $currentFormField = Signal({
@@ -56,6 +58,7 @@ export const handleOpenModal = (form = null) => {
       show_title: form.show_title !== undefined ? form.show_title : true,
       show_description: form.show_description !== undefined ? form.show_description : true,
       theme: form.theme || 'light',
+      order_confirmation_url: form.order_confirmation_url || '',
     });
     $formManagerUI.update({
       showModal: true,
@@ -176,6 +179,13 @@ export const moveField = (fromIndex, toIndex) => {
   };
 };
 
+// Validate URL format (allows localhost)
+const validateUrl = (url) => {
+  if (!url || url.trim() === '') return true; // Empty is valid (optional field)
+  const urlPattern = /^(https?:\/\/|http:\/\/localhost|https:\/\/localhost)/i;
+  return urlPattern.test(url.trim());
+};
+
 export const handleSubmit = async (e, eventId, onUpdate) => {
   e.preventDefault();
 
@@ -183,6 +193,12 @@ export const handleSubmit = async (e, eventId, onUpdate) => {
 
   if (!formData.name) {
     showToast('Please enter a form name', 'error');
+    return;
+  }
+
+  // Validate order_confirmation_url if provided
+  if (formData.order_confirmation_url && !validateUrl(formData.order_confirmation_url)) {
+    showToast('Please enter a valid URL (e.g., https://example.com or http://localhost:3000)', 'error');
     return;
   }
 
@@ -199,6 +215,7 @@ export const handleSubmit = async (e, eventId, onUpdate) => {
       show_title: formData.show_title,
       show_description: formData.show_description,
       theme: formData.theme,
+      order_confirmation_url: formData.order_confirmation_url || null,
     };
 
     const { editingForm } = $formManagerUI.value;
@@ -267,9 +284,28 @@ export const handleShowEmbed = (formId) => {
   style="border: none; border-radius: 8px;">
 </iframe>`;
 
+  const eventListenerCode = `// Listen for order complete event from iframe
+window.addEventListener('message', (event) => {
+  // Verify origin for security (replace with your iframe domain)
+  // if (event.origin !== 'https://your-domain.com') return;
+  
+  if (event.data && event.data.type === 'order-complete') {
+    const { redirectUrl, orderDetails, order } = event.data;
+    
+    // Redirect to confirmation page
+    window.location.href = redirectUrl;
+    
+    // Or handle the redirect manually with order details:
+    // console.log('Order completed:', orderDetails);
+    // console.log('Full order:', order);
+    // window.location.href = redirectUrl;
+  }
+});`;
+
   $formManagerUI.update({
     showEmbedModal: true,
     embedCode,
+    eventListenerCode,
   });
 };
 
@@ -277,6 +313,7 @@ export const handleCloseEmbedModal = () => {
   $formManagerUI.update({
     showEmbedModal: false,
     embedCode: '',
+    eventListenerCode: '',
   });
 };
 
@@ -284,4 +321,10 @@ export const handleCopyEmbed = () => {
   const { embedCode } = $formManagerUI.value;
   navigator.clipboard.writeText(embedCode);
   showToast('Embed code copied to clipboard', 'success');
+};
+
+export const handleCopyEventListener = () => {
+  const { eventListenerCode } = $formManagerUI.value;
+  navigator.clipboard.writeText(eventListenerCode);
+  showToast('Event listener code copied to clipboard', 'success');
 };
