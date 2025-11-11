@@ -27,13 +27,16 @@ export async function confirmPayment(
 
   // Verify payment with Accrupay
   try {
-    const verifiedTransaction = envTag === "prod"
-      ? await accruPay.transactions.verifyClientPaymentSession({
-        id: order.payment_intent_id,
-      }) : {
-        status: "SUCCEEDED",
-        id: order.payment_intent_id,
-      };
+    // const verifiedTransaction = envTag === "prod"
+    //   ? await accruPay.transactions.verifyClientPaymentSession({
+    //     id: order.payment_intent_id,
+    //   }) : {
+    //     status: "SUCCEEDED",
+    //     id: order.payment_intent_id,
+    //   };
+    const verifiedTransaction = await accruPay.transactions.verifyClientPaymentSession({
+      id: order.payment_intent_id,
+    });
 
     if (verifiedTransaction.status === "SUCCEEDED") {
       // Update order status to PAID

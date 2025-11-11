@@ -47,7 +47,10 @@ export const handlePaymentSuccess = async (paymentData) => {
 
     const { order, form, confirmationUrlOverride, isEmbedded } = $checkout.value;
 
+    // Confirm payment with backend - this must succeed before we redirect
     await paymentsAPI.confirmPayment(order.id, paymentData);
+
+    // Only proceed with redirect logic if confirmPayment succeeded
     let redirectUrl;
 
     if (confirmationUrlOverride) {
@@ -99,20 +102,26 @@ export const handlePaymentSuccess = async (paymentData) => {
     }
 
     // Standalone mode - show success message and redirect
+    // Only update to completed status after successful confirmation
     $checkout.update({
       paymentStatus: 'completed',
     });
 
+    // Only redirect after payment was successfully confirmed
     setTimeout(() => {
       window.location.href = redirectUrl;
     }, 2000);
   } catch (err) {
+    // Payment confirmation failed - show clear error message
+    const errorMessage = err.message || 'Payment confirmation failed. Please contact support if you were charged.';
     $checkout.update({
-      error: err.message || 'Payment confirmation failed',
+      error: errorMessage,
       paymentStatus: 'failed',
     });
+    isProcessingPayment.value = false;
   } finally {
-    if (!$checkout.value.isEmbedded) {
+    // Only reset processing state if not embedded and not in completed status
+    if (!$checkout.value.isEmbedded && $checkout.value.paymentStatus !== 'completed') {
       isProcessingPayment.value = false;
     }
   }
@@ -131,13 +140,6 @@ export const handlePaymentCancel = () => {
     paymentStatus: 'cancelled',
   });
   isProcessingPayment.value = false;
-};
-
-export const retryPayment = () => {
-  $checkout.update({
-    error: null,
-    paymentStatus: null,
-  });
 };
 
 export const toggleTestCards = () => {

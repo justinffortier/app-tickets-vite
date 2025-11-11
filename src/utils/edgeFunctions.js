@@ -7,16 +7,17 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 /**
- * Makes a request to a Supabase Edge Function
+ * Makes a request to a Supabase Edge Function with timeout handling
  * @param {string} functionName - Name of the edge function
  * @param {object} options - Request options
  * @param {string} options.method - HTTP method
  * @param {object} options.body - Request body
  * @param {object} options.headers - Additional headers
+ * @param {number} options.timeout - Request timeout in milliseconds (default: 30000)
  * @returns {Promise<Response>} The response from the edge function
  */
 export async function callEdgeFunction(functionName, options = {}) {
-  const { method = 'GET', body, headers = {} } = options;
+  const { method = 'GET', body, headers = {}, timeout = 30000 } = options;
 
   const url = `${SUPABASE_URL}/functions/v1/${functionName}`;
 
@@ -50,16 +51,52 @@ export async function callEdgeFunction(functionName, options = {}) {
   }
 
   try {
+    // Create an AbortController for timeout handling
+    const controller = new AbortController();
+    config.signal = controller.signal;
+
+    // Set up timeout
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeout);
+
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
+
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || data.message || 'An error occurred');
+      // Provide more specific error messages based on status code
+      let errorMessage = data.error || data.message || 'An error occurred';
+
+      if (response.status === 404) {
+        errorMessage = 'Resource not found';
+      } else if (response.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (response.status === 401 || response.status === 403) {
+        errorMessage = 'Authentication error. Please refresh the page.';
+      }
+
+      const error = new Error(errorMessage);
+      error.status = response.status;
+      throw error;
     }
 
     return data;
   } catch (error) {
-    console.error(`Error calling edge function ${functionName}:`, error);
+    // Handle different types of errors
+    if (error.name === 'AbortError') {
+      const timeoutError = new Error('Request timed out. Please check your internet connection and try again.');
+      timeoutError.isTimeout = true;
+      throw timeoutError;
+    }
+
+    if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+      const networkError = new Error('Network error. Please check your internet connection.');
+      networkError.isNetworkError = true;
+      throw networkError;
+    }
+
     throw error;
   }
 }

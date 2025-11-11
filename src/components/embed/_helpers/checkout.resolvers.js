@@ -1,16 +1,18 @@
 import { $checkout } from '@src/signals';
 import ordersAPI from '@src/api/orders.api';
 import paymentsAPI from '@src/api/payments.api';
+import { sessionInitError } from './checkout.consts';
 
 export const loadOrderData = async (orderId) => {
   try {
     $checkout.loadingStart();
     $checkout.update({ error: null });
+    sessionInitError.value = null;
 
     const orderData = await ordersAPI.getById(orderId);
 
     if (!orderData) {
-      throw new Error('Order not found');
+      throw new Error('Order not found. Please check your order link and try again.');
     }
 
     if (orderData.status === 'PAID') {
@@ -22,15 +24,46 @@ export const loadOrderData = async (orderId) => {
     }
 
     if (orderData.status === 'CANCELLED') {
-      throw new Error('This order has been cancelled');
+      throw new Error('This order has been cancelled and cannot be paid.');
+    }
+
+    if (orderData.status === 'EXPIRED') {
+      throw new Error('This order has expired. Please create a new order.');
+    }
+
+    if (orderData.status !== 'PENDING') {
+      throw new Error(`This order cannot be processed. Status: ${orderData.status}`);
+    }
+
+    // Validate order has required information
+    if (!orderData.total || orderData.total <= 0) {
+      throw new Error('Invalid order total. Please contact support.');
+    }
+
+    if (!orderData.customer_email) {
+      throw new Error('Order is missing customer information. Please contact support.');
     }
 
     // Extract form data from order's form_submissions relationship
     const formData = orderData.form_submissions?.forms || null;
 
-    $checkout.update({ order: orderData, form: formData });
+    $checkout.update({ order: orderData, form: formData, error: null });
   } catch (err) {
-    $checkout.update({ error: err.message || 'Error loading order' });
+    // Provide specific error messages based on error type
+    let errorMessage = err.message || 'Unable to load order information.';
+
+    // Check for network errors
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      errorMessage = 'Network error. Please check your internet connection and try again.';
+    } else if (err.message.includes('timeout')) {
+      errorMessage = 'Request timed out. Please check your internet connection and refresh the page.';
+    } else if (err.message.includes('404') || err.message.includes('not found')) {
+      errorMessage = 'Order not found. Please check your order link and try again.';
+    } else if (err.message.includes('500') || err.message.includes('server error')) {
+      errorMessage = 'Server error. Please try again later or contact support.';
+    }
+
+    $checkout.update({ error: errorMessage });
   } finally {
     $checkout.loadingEnd();
   }
@@ -38,21 +71,50 @@ export const loadOrderData = async (orderId) => {
 
 export const initializePaymentSession = async (orderId) => {
   try {
+    sessionInitError.value = null;
     const sessionData = await paymentsAPI.createPaymentSession(orderId);
-    $checkout.update({ paymentSession: sessionData });
+
+    if (!sessionData || !sessionData.sessionToken) {
+      const errorMsg = 'Payment session was created but is missing required information. Please refresh the page.';
+      sessionInitError.value = errorMsg;
+      $checkout.update({ error: errorMsg });
+      throw new Error(errorMsg);
+    }
+
+    $checkout.update({ paymentSession: sessionData, error: null });
     return sessionData;
   } catch (err) {
-    $checkout.update({ error: err.message || 'Error initializing payment' });
+    const errorMsg = err.message || 'Unable to initialize payment session. Please refresh the page or contact support.';
+    sessionInitError.value = errorMsg;
+    $checkout.update({ error: errorMsg });
     throw err;
   }
 };
 
 export const fetchPaymentSession = async (orderId) => {
   try {
+    sessionInitError.value = null;
     const sessionData = await paymentsAPI.getPaymentSession(orderId);
+
+    if (!sessionData) {
+      // No existing session found - this is expected, will create new one
+      return null;
+    }
+
+    if (!sessionData.sessionToken) {
+      const errorMsg = 'Payment session is invalid. Please refresh the page.';
+      sessionInitError.value = errorMsg;
+      throw new Error(errorMsg);
+    }
+
     return sessionData;
   } catch (err) {
-    $checkout.update({ error: err.message || 'Error fetching payment session' });
+    // Only set error for actual failures, not for "not found" scenarios
+    if (err.message && !err.message.includes('not found')) {
+      const errorMsg = err.message || 'Unable to retrieve payment session.';
+      sessionInitError.value = errorMsg;
+      $checkout.update({ error: errorMsg });
+    }
     throw err;
   }
 };

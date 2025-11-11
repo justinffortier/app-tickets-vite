@@ -19,10 +19,26 @@ function OrderConfirmation() {
     try {
       $orderConfirmation.loadingStart();
       const orderData = await ordersAPI.getById(orderId);
+
+      if (!orderData) {
+        throw new Error('Order not found. Please check your order link.');
+      }
+
       $orderConfirmation.update({ order: orderData, error: null });
     } catch (err) {
+      // Provide specific error messages
+      let errorMessage = err.message || 'Unable to load order confirmation.';
+
+      if (err.message.includes('Failed to fetch') || err.name === 'TypeError') {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (err.isTimeout) {
+        errorMessage = 'Request timed out. Please refresh the page and try again.';
+      } else if (err.status === 404) {
+        errorMessage = 'Order not found. Please check your order link.';
+      }
+
       $orderConfirmation.update({
-        error: err.message || 'Error loading order confirmation',
+        error: errorMessage,
       });
     } finally {
       $orderConfirmation.loadingEnd();
@@ -34,7 +50,10 @@ function OrderConfirmation() {
   if (error) {
     return (
       <Container className="py-5" style={{ maxWidth: '800px' }}>
-        <Alert variant="danger">{error}</Alert>
+        <Alert variant="danger">
+          <Alert.Heading>Unable to Load Order</Alert.Heading>
+          <p>{error}</p>
+        </Alert>
       </Container>
     );
   }
@@ -42,7 +61,10 @@ function OrderConfirmation() {
   if (!order) {
     return (
       <Container className="py-5" style={{ maxWidth: '800px' }}>
-        <Alert variant="warning">Order not found</Alert>
+        <Alert variant="warning">
+          <Alert.Heading>Order Not Found</Alert.Heading>
+          <p>We couldn't find this order. Please check your order link and try again.</p>
+        </Alert>
       </Container>
     );
   }

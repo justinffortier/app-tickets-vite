@@ -9,7 +9,7 @@ import { useState } from 'react';
 import paymentsAPI from '@src/api/payments.api';
 import * as resolvers from './_helpers/checkout.resolvers';
 import * as events from './_helpers/checkout.events';
-import { isProcessingPayment, showTestCards } from './_helpers/checkout.consts';
+import { isProcessingPayment, showTestCards, providerConfigError, sessionInitError } from './_helpers/checkout.consts';
 
 const PAYMENT_PROCESSOR = 'nuvei';
 
@@ -124,11 +124,15 @@ function Checkout() {
   // Fetch providers configuration from AccruPay
   useEffectAsync(async () => {
     try {
+      providerConfigError.value = null;
       const providersData = await paymentsAPI.getProviders();
       setProviders(providersData);
     } catch (err) {
-      // Set fallback empty config if fetch fails
-      setProviders([{ name: 'nuvei', config: {} }]);
+      // Payment provider configuration could not be loaded
+      const errorMsg = 'Unable to load payment provider configuration. Please try refreshing the page.';
+      providerConfigError.value = errorMsg;
+      $checkout.update({ error: errorMsg });
+      // Don't set fallback providers - we need valid config to process payments
     }
   }, []);
 
@@ -237,10 +241,7 @@ function Checkout() {
       return (
         <Alert variant="danger">
           <Alert.Heading>Payment Failed</Alert.Heading>
-          <p>{error || 'There was an error processing your payment.'}</p>
-          <Button variant="danger" onClick={events.retryPayment}>
-            Try Again
-          </Button>
+          <p>{error || 'There was an error processing your payment. Please check your payment details and try again.'}</p>
         </Alert>
       );
     }
@@ -249,10 +250,7 @@ function Checkout() {
       return (
         <Alert variant="warning">
           <Alert.Heading>Payment Cancelled</Alert.Heading>
-          <p>You cancelled the payment process.</p>
-          <Button variant="primary" onClick={events.retryPayment}>
-            Resume Payment
-          </Button>
+          <p>The payment process was cancelled. Please try again when you're ready to complete your order.</p>
         </Alert>
       );
     }
@@ -382,7 +380,26 @@ function Checkout() {
 
   return (
     <Container className={`py-5 ${theme}`} style={{ maxWidth: '800px' }}>
-      {error && <Alert variant="danger" className="mb-24">{error}</Alert>}
+      {/* Show provider configuration errors */}
+      {providerConfigError.value && (
+        <Alert variant="danger" className="mb-24">
+          <Alert.Heading>Configuration Error</Alert.Heading>
+          <p>{providerConfigError.value}</p>
+        </Alert>
+      )}
+
+      {/* Show session initialization errors */}
+      {sessionInitError.value && !providerConfigError.value && (
+        <Alert variant="danger" className="mb-24">
+          <Alert.Heading>Payment Session Error</Alert.Heading>
+          <p>{sessionInitError.value}</p>
+        </Alert>
+      )}
+
+      {/* Show general errors that aren't provider or session related */}
+      {error && !providerConfigError.value && !sessionInitError.value && (
+        <Alert variant="danger" className="mb-24">{error}</Alert>
+      )}
 
       {renderPaymentStatus()}
 
@@ -390,13 +407,13 @@ function Checkout() {
         <Col md={12}>
           {renderOrderSummary()}
 
-          {/* Show loader when providers or payment session are loading */}
-          {order && order.status === 'PENDING' && !paymentStatus && (!providers || !paymentSession) && (
+          {/* Show loader when providers or payment session are loading (and no errors) */}
+          {order && order.status === 'PENDING' && !paymentStatus && !providerConfigError.value && !sessionInitError.value && (!providers || !paymentSession) && (
             <CardLoader message="Initializing payment form..." />
           )}
 
-          {/* Show payment form when everything is ready */}
-          {order && providers && paymentSession && !paymentStatus && (
+          {/* Show payment form when everything is ready and no critical errors */}
+          {order && providers && paymentSession && !paymentStatus && !providerConfigError.value && !sessionInitError.value && (
             <Card>
               <Card.Body>
                 <Row>
@@ -417,7 +434,8 @@ function Checkout() {
                   </AccruPay>
                 ) : (
                   <Alert variant="warning">
-                    Payment session could not be initialized. Please contact support.
+                    <Alert.Heading>Session Error</Alert.Heading>
+                    <p>Payment session could not be initialized. Please refresh the page or contact support if the problem persists.</p>
                   </Alert>
                 )}
               </Card.Body>
