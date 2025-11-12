@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { generateApiKey } from "./utils/generateApiKey.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,9 +68,15 @@ Deno.serve(async (req: Request) => {
       case "create": {
         // created_by should be passed in the data from the client
         // It should be the user's Supabase ID (from users table, not auth.users)
+        // Auto-generate API key for the event
+        const eventData = {
+          ...data,
+          api_key: generateApiKey(),
+        };
+
         const { data: event, error } = await supabaseClient
           .from("events")
-          .insert(data)
+          .insert(eventData)
           .select()
           .single();
 
@@ -79,12 +86,28 @@ Deno.serve(async (req: Request) => {
       }
 
       case "update": {
+        // Generate API key if it doesn't exist (for existing events)
+        const updateData = {
+          ...data,
+          updated_at: new Date().toISOString(),
+        };
+
+        // Check if event has an API key, if not generate one
+        if (!data.api_key) {
+          const { data: existingEvent } = await supabaseClient
+            .from("events")
+            .select("api_key")
+            .eq("id", id)
+            .maybeSingle();
+
+          if (existingEvent && !existingEvent.api_key) {
+            updateData.api_key = generateApiKey();
+          }
+        }
+
         const { data: event, error } = await supabaseClient
           .from("events")
-          .update({
-            ...data,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq("id", id)
           .select()
           .single();

@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import Loader from '@src/components/global/Loader';
 import { $sales, loadSales } from './_helpers/salesManager.events';
+import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
 
 function SalesManager({ eventId }) {
   const { orders } = $sales.value;
@@ -20,6 +21,15 @@ function SalesManager({ eventId }) {
       REFUNDED: 'secondary',
     };
     return variants[status] || 'secondary';
+  };
+
+  const handleCopyOrderId = async (orderId) => {
+    try {
+      await navigator.clipboard.writeText(orderId);
+      showToast('Order ID copied to clipboard', 'success');
+    } catch (error) {
+      showToast('Failed to copy Order ID', 'error');
+    }
   };
 
   if (loading) return <Loader />;
@@ -54,7 +64,12 @@ function SalesManager({ eventId }) {
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td className="font-monospace small">
+                  <td 
+                    className="font-monospace small" 
+                    style={{ cursor: 'pointer', color: '#0d6efd' }}
+                    onClick={() => handleCopyOrderId(order.id)}
+                    title="Click to copy full Order ID"
+                  >
                     {order.id.substring(0, 8)}...
                   </td>
                   <td>

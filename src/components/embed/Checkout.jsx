@@ -1,101 +1,20 @@
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Card, Alert, Container, Row, Col, Button, Form } from 'react-bootstrap';
+import { Card, Alert, Container, Row, Col } from 'react-bootstrap';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
-import { AccruPay, form } from 'accru-pay-react';
+import { AccruPay } from 'accru-pay-react';
 import { $checkout } from '@src/signals';
 import Loader from '@src/components/global/Loader';
 import CardLoader from '@src/components/global/CardLoader';
 import { useState } from 'react';
 import paymentsAPI from '@src/api/payments.api';
 import * as resolvers from './_helpers/checkout.resolvers';
-import * as events from './_helpers/checkout.events';
-import { isProcessingPayment, showTestCards, providerConfigError, sessionInitError } from './_helpers/checkout.consts';
+import { providerConfigError, sessionInitError } from './_helpers/checkout.consts';
+import CreditCardForm from './_components/CreditCardForm';
+import OrderSummary from './_components/OrderSummary';
+import PaymentStatus from './_components/PaymentStatus';
+import TestCards from './_components/TestCards';
 
 const PAYMENT_PROCESSOR = 'nuvei';
-
-function CreditCardForm() {
-  const AccruPaymentForm = form(PAYMENT_PROCESSOR);
-  const { order } = $checkout.value;
-
-  return (
-    <div style={{ position: 'relative' }}>
-      {/* Overlay skeleton loader while payment is processing */}
-      {isProcessingPayment.value && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'white',
-            zIndex: 10,
-          }}
-        >
-          <CardLoader
-            variant="skeleton"
-            message="Processing payment..."
-          />
-        </div>
-      )}
-
-      {/* Keep form mounted but hidden during processing */}
-      <div style={{ opacity: isProcessingPayment.value ? 0 : 1 }}>
-        <Form>
-          <Form.Group className="mb-24" controlId="cardholderName">
-            <Form.Label>Cardholder Name</Form.Label>
-            <AccruPaymentForm.CardHolderName
-              className="form-control"
-              placeholder="Enter cardholder name"
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-24" controlId="cardNumber">
-            <Form.Label>Credit Card Number</Form.Label>
-            <div className="form-control">
-              <AccruPaymentForm.CreditCardNumber />
-            </div>
-          </Form.Group>
-
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-24" controlId="cardExpiration">
-                <Form.Label>Expiration Date</Form.Label>
-                <div className="form-control">
-                  <AccruPaymentForm.CreditCardExpiration />
-                </div>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-24" controlId="cardCvc">
-                <Form.Label>CVV</Form.Label>
-                <div className="form-control">
-                  <AccruPaymentForm.CreditCardCvc />
-                </div>
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <div className="d-grid">
-            <AccruPaymentForm.SubmitBtn
-              className="btn btn-primary btn-lg"
-              text={`Pay $${parseFloat(order.total).toFixed(2)}`}
-              onSubmit={() => {
-                isProcessingPayment.value = true;
-              }}
-              onSuccess={events.handlePaymentSuccess}
-              onError={events.handlePaymentError}
-              onComplete={() => {
-                isProcessingPayment.value = false;
-              }}
-              disabled={isProcessingPayment.value}
-            />
-          </div>
-        </Form>
-      </div>
-    </div>
-  );
-}
 
 function Checkout() {
   const { orderId } = useParams();
@@ -105,7 +24,6 @@ function Checkout() {
   const theme = $checkout.value.form?.theme || 'light';
   const [providers, setProviders] = useState(null);
 
-  // Read confirmationUrl and embed flag from query params
   useEffectAsync(() => {
     const confirmationUrlOverride = searchParams.get('confirmationUrl');
     const isEmbedded = searchParams.get('embed') === 'true';
@@ -121,7 +39,6 @@ function Checkout() {
     }
   }, [searchParams]);
 
-  // Fetch providers configuration from AccruPay
   useEffectAsync(async () => {
     try {
       providerConfigError.value = null;
@@ -135,14 +52,6 @@ function Checkout() {
       // Don't set fallback providers - we need valid config to process payments
     }
   }, []);
-
-  // Function to get providers configuration for AccruPay React SDK
-  const getProviders = () => {
-    if (!providers) {
-      return [];
-    }
-    return providers;
-  };
 
   useEffectAsync(async () => {
     if (orderId) {
@@ -168,188 +77,6 @@ function Checkout() {
     }
   }, [order, orderId]);
 
-  const renderOrderSummary = () => {
-    if (!order) return null;
-
-    return (
-      <Card className="mb-24">
-        <Card.Body>
-          <h5 className="mb-24">Order Summary</h5>
-
-          <div className="mb-24">
-            <strong>Event:</strong> {order.events?.title || 'N/A'}
-          </div>
-
-          <div className="mb-24">
-            <strong>Customer:</strong>
-            <div>{order.customer_name || 'Guest'}</div>
-            <div className="text-muted">{order.customer_email}</div>
-          </div>
-
-          <div className="mb-24">
-            <strong>Tickets:</strong>
-            {order.order_items?.map((item, index) => (
-              <div key={index} className="d-flex justify-content-between mt-8">
-                <span>
-                  {item.ticket_types?.name || 'Ticket'} x {item.quantity}
-                </span>
-                <span>${parseFloat(item.subtotal).toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-top pt-16 mt-16">
-            <div className="d-flex justify-content-between mb-8">
-              <span>Subtotal:</span>
-              <strong>${parseFloat(order.subtotal).toFixed(2)}</strong>
-            </div>
-
-            {order.discount_amount > 0 && (
-              <div className="d-flex justify-content-between mb-8 text-success">
-                <span>Discount ({order.discount_codes?.code}):</span>
-                <strong>-${parseFloat(order.discount_amount).toFixed(2)}</strong>
-              </div>
-            )}
-
-            <div className="d-flex justify-content-between pt-16 border-top">
-              <strong>Total:</strong>
-              <strong className="text-primary">
-                ${parseFloat(order.total).toFixed(2)}
-              </strong>
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
-    );
-  };
-
-  const renderPaymentStatus = () => {
-    if (paymentStatus === 'completed') {
-      return (
-        <Alert variant="success">
-          <Alert.Heading>Payment Successful!</Alert.Heading>
-          <p>
-            Your payment has been processed successfully. You will receive a confirmation
-            email shortly at {order?.customer_email}.
-          </p>
-          <p className="mb-0">Redirecting to confirmation page...</p>
-        </Alert>
-      );
-    }
-
-    if (paymentStatus === 'failed') {
-      return (
-        <Alert variant="danger">
-          <Alert.Heading>Payment Failed</Alert.Heading>
-          <p>{error || 'There was an error processing your payment. Please check your payment details and try again.'}</p>
-        </Alert>
-      );
-    }
-
-    if (paymentStatus === 'cancelled') {
-      return (
-        <Alert variant="warning">
-          <Alert.Heading>Payment Cancelled</Alert.Heading>
-          <p>The payment process was cancelled. Please try again when you're ready to complete your order.</p>
-        </Alert>
-      );
-    }
-
-    return null;
-  };
-
-  const renderTestCards = () => {
-    // Get environment from providers
-    const env = providers?.[0]?.config?.env || providers?.[0]?.config?.environment;
-
-    // Only show test cards in dev/sandbox/qa environments
-    if (env !== 'int') {
-      return null;
-    }
-
-    const testCards = [
-      {
-        scenario: 'Frictionless',
-        amount: '>= 150',
-        cardHolderName: 'FL-BRW1',
-        cardNumber: '4000020951595032',
-        expiration: '01/30',
-        cvv: '123',
-      },
-      {
-        scenario: 'Challenge',
-        amount: '151',
-        cardHolderName: 'CL-BRW2',
-        cardNumber: '2221008123677736',
-        expiration: '01/30',
-        cvv: '123',
-      },
-      {
-        scenario: 'non-3DS',
-        amount: '10',
-        cardHolderName: 'Jane Smith',
-        cardNumber: '4000027891380961',
-        expiration: '01/30',
-        cvv: '123',
-      },
-    ];
-
-    return (
-      <div className="mb-24">
-        <Button
-          variant="outline-dark"
-          size="sm"
-          onClick={events.toggleTestCards}
-          className="mb-16"
-        >
-          {showTestCards.value ? 'Hide' : 'Show'} Test Cards
-        </Button>
-
-        {showTestCards.value && (
-          <Alert variant="info">
-            <small className="text-muted d-block mb-16">
-              Environment: <strong>{env}</strong>
-            </small>
-            <div className="table-responsive">
-              <table className="table table-sm table-bordered mb-0" style={{ fontSize: '0.875rem' }}>
-                <thead>
-                  <tr>
-                    <th>Scenario</th>
-                    <th>Amount</th>
-                    <th>Name</th>
-                    <th>CC Number</th>
-                    <th>Exp Date</th>
-                    <th>CVV</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {testCards.map((card, index) => (
-                    <tr key={index}>
-                      <td>{card.scenario}</td>
-                      <td>{card.amount}</td>
-                      <td>
-                        <code>{card.cardHolderName}</code>
-                      </td>
-                      <td>
-                        <code>{card.cardNumber}</code>
-                      </td>
-                      <td>
-                        <code>{card.expiration}</code>
-                      </td>
-                      <td>
-                        <code>{card.cvv}</code>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Alert>
-        )}
-      </div>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="min-vh-100 w-100 d-flex justify-content-center align-items-center">
@@ -373,7 +100,7 @@ function Checkout() {
           <Alert.Heading>Order Already Paid</Alert.Heading>
           <p>This order has already been paid.</p>
         </Alert>
-        {renderOrderSummary()}
+        <OrderSummary order={order} />
       </Container>
     );
   }
@@ -401,11 +128,11 @@ function Checkout() {
         <Alert variant="danger" className="mb-24">{error}</Alert>
       )}
 
-      {renderPaymentStatus()}
+      <PaymentStatus paymentStatus={paymentStatus} error={error} order={order} />
 
       <Row>
         <Col md={12}>
-          {renderOrderSummary()}
+          <OrderSummary order={order} />
 
           {/* Show loader when providers or payment session are loading (and no errors) */}
           {order && order.status === 'PENDING' && !paymentStatus && !providerConfigError.value && !sessionInitError.value && (!providers || !paymentSession) && (
@@ -421,16 +148,16 @@ function Checkout() {
                     <h5 className="mb-24">Payment Information</h5>
                   </Col>
                   <Col md={8} className="text-end">
-                    {renderTestCards()}
+                    <TestCards providers={providers} />
                   </Col>
                 </Row>
                 {paymentSession.sessionToken ? (
                   <AccruPay
                     sessionToken={paymentSession.sessionToken}
                     preferredProvider={PAYMENT_PROCESSOR}
-                    preReleaseGetProviders={getProviders}
+                    preReleaseGetProviders={() => providers || []}
                   >
-                    <CreditCardForm />
+                    <CreditCardForm order={order} />
                   </AccruPay>
                 ) : (
                   <Alert variant="warning">

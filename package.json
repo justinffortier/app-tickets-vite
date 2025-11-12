@@ -6,6 +6,7 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
+    "build:production": "VITE_APP_ENV=production vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "clean": "rm -rf node_modules && rm yarn.lock && yarn install",
@@ -14,9 +15,9 @@
     "watch": "nodemon --watch .yalc --exec 'yarn dev-restart'",
     "deploy-functions": "supabase functions deploy",
     "migrate": "supabase db push",
-    "deploy": "vite build && firebase deploy --only hosting",
+    "deploy": "VITE_APP_ENV=production vite build && firebase deploy --only hosting",
     "deploy:hosting": "firebase deploy --only hosting",
-    "deploy:all": "supabase functions deploy && supabase db push && firebase deploy --only hosting"
+    "deploy:all": "supabase functions deploy && supabase db push && VITE_APP_ENV=production vite build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@accrupay/node": "^0.15.1",

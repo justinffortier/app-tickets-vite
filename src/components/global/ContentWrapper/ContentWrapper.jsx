@@ -19,7 +19,7 @@ const ContentWrapper = ({ children, className, fluid }) => {
   return (
     <div className="bg-grey-800 text-white">
       <AdminNav />
-      <Container fluid={!!fluid} className={className}>
+      <Container fluid={!!fluid} className={className} style={{ minHeight: '100vh' }}>
         {children}
       </Container>
     </div>

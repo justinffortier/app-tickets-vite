@@ -1,19 +1,21 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, Alert, Container, Button } from 'react-bootstrap';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
-import { signal } from '@preact/signals-react';
+import { Signal } from '@fyclabs/tools-fyc-react/signals';
 import ordersAPI from '@src/api/orders.api';
 import Loader from '@src/components/global/Loader';
 
-const $orderConfirmation = signal({
+const $orderConfirmation = Signal({
   order: null,
   error: null,
 });
 
 function OrderConfirmation() {
   const { orderId } = useParams();
+  const [searchParams] = useSearchParams();
   const { order, error } = $orderConfirmation.value;
   const { isLoading } = $orderConfirmation.value;
+  const theme = searchParams.get('theme') || 'light';
 
   useEffectAsync(async () => {
     try {
@@ -41,7 +43,7 @@ function OrderConfirmation() {
         error: errorMessage,
       });
     } finally {
-      $orderConfirmation.loadingEnd();
+      $orderConfirmation.update({ isLoading: false });
     }
   }, [orderId]);
 
@@ -49,7 +51,7 @@ function OrderConfirmation() {
 
   if (error) {
     return (
-      <Container className="py-5" style={{ maxWidth: '800px' }}>
+      <Container className={`py-5 ${theme}`} style={{ maxWidth: '800px' }}>
         <Alert variant="danger">
           <Alert.Heading>Unable to Load Order</Alert.Heading>
           <p>{error}</p>
@@ -60,7 +62,7 @@ function OrderConfirmation() {
 
   if (!order) {
     return (
-      <Container className="py-5" style={{ maxWidth: '800px' }}>
+      <Container className={`py-5 ${theme}`} style={{ maxWidth: '800px' }}>
         <Alert variant="warning">
           <Alert.Heading>Order Not Found</Alert.Heading>
           <p>We couldn't find this order. Please check your order link and try again.</p>
@@ -70,7 +72,7 @@ function OrderConfirmation() {
   }
 
   return (
-    <Container className="py-5" style={{ maxWidth: '800px' }}>
+    <Container className={`py-5 ${theme}`} style={{ maxWidth: '800px' }}>
       <Alert variant="success" className="mb-32">
         <Alert.Heading>
           <i className="fas fa-check-circle me-2" />
@@ -144,12 +146,6 @@ function OrderConfirmation() {
         >
           <i className="fas fa-print me-2" />
           Print Receipt
-        </Button>
-        <Button
-          variant="primary"
-          onClick={() => { window.location.href = '/'; }}
-        >
-          Return to Home
         </Button>
       </div>
     </Container>

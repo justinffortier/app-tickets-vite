@@ -15,6 +15,8 @@ export const $eventForm = Signal({
   image_url: '',
   capacity: '',
   status: 'DRAFT',
+  customerio_app_api_key: '',
+  customerio_transactional_template_id: '',
 });
 
 export const loadEvent = async (id) => {
@@ -33,6 +35,8 @@ export const loadEvent = async (id) => {
       image_url: data.image_url || '',
       capacity: data.capacity || '',
       status: data.status || 'DRAFT',
+      customerio_app_api_key: data.customerio_app_api_key || '',
+      customerio_transactional_template_id: data.customerio_transactional_template_id || '',
     });
   } catch (error) {
     showToast('Error loading event', 'error');
@@ -70,6 +74,8 @@ export const handleSubmit = async (e, id, navigate) => {
       image_url: formData.image_url,
       capacity: formData.capacity ? parseInt(formData.capacity, 10) : null,
       status: formData.status,
+      customerio_app_api_key: formData.customerio_app_api_key || null,
+      customerio_transactional_template_id: formData.customerio_transactional_template_id || null,
     };
 
     if (id) {

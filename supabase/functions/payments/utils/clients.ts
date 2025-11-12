@@ -26,8 +26,7 @@ export function initializeAccruPayClient() {
   }
 
   // Initialize Accrupay client
-  // const environment = ENV_TAG === "prod" ? "production" : "qa";
-  const environment = 'qa';
+  const environment = ENV_TAG === "prod" ? "production" : "qa";
 
   try {
     const accruPay = new AccruPay({

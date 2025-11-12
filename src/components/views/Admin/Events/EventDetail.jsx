@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Badge, Tab, Tabs, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faSave, faCopy, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { useState } from 'react';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import { $events, $tickets } from '@src/signals';
 import Loader from '@src/components/global/Loader';
@@ -21,6 +22,8 @@ function EventDetail() {
   const loading = $events.value.isLoading;
   const formData = $eventForm.value;
   const formLoading = $eventForm.value.isLoading;
+  const [copiedApiKey, setCopiedApiKey] = useState(false);
+  const [copiedCurl, setCopiedCurl] = useState(false);
 
   useEffectAsync(async () => {
     await loadEventData(id);
@@ -31,6 +34,13 @@ function EventDetail() {
     e.preventDefault();
     await handleSubmit(e, id, () => { });
     await loadEventData(id);
+  };
+
+  const copyToClipboard = (text, setCopied) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   if (loading) return <Loader />;
@@ -174,6 +184,177 @@ function EventDetail() {
 
             <Tab eventKey="sales" title="Sales">
               <SalesManager eventId={id} />
+            </Tab>
+
+            <Tab eventKey="integrations" title="Integrations">
+              <Card>
+                <Card.Body>
+                  <h5 className="mb-24">Customer.io Configuration</h5>
+                  <p className="text-muted mb-24">
+                    Configure Customer.io credentials to enable transactional email notifications 
+                    for ticket purchases. These emails will be sent automatically after successful payment.
+                  </p>
+                  <Form onSubmit={handleEventSubmit}>
+                    <Form.Group className="mb-24">
+                      <Form.Label>App API Key</Form.Label>
+                      <Form.Control
+                        type="password"
+                        name="customerio_app_api_key"
+                        value={formData.customerio_app_api_key}
+                        onChange={handleChange}
+                        placeholder="Enter your Customer.io App API Key"
+                      />
+                      <Form.Text className="text-muted">
+                        Your Customer.io App API Key (not Track API Key). Find this in Workspace Settings → API Credentials → App API Keys. Keep this secure.
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-24">
+                      <Form.Label>Transactional Template ID</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="customerio_transactional_template_id"
+                        value={formData.customerio_transactional_template_id}
+                        onChange={handleChange}
+                        placeholder="Enter the transactional email template ID"
+                      />
+                      <Form.Text className="text-muted">
+                        The ID or name of your Customer.io transactional email template
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Button type="submit" variant="primary" disabled={formLoading}>
+                      <FontAwesomeIcon icon={faSave} className="me-2" />
+                      {formLoading ? 'Saving...' : 'Save Integration Settings'}
+                    </Button>
+                  </Form>
+                </Card.Body>
+              </Card>
+            </Tab>
+
+            <Tab eventKey="api-access" title="API Access">
+              <Card>
+                <Card.Body>
+                  <h5 className="mb-24">Public Order Confirmation API</h5>
+                  <p className="text-muted mb-24">
+                    Use this API key to fetch order details from your website or external systems.
+                    This key only provides access to orders for this specific event.
+                  </p>
+
+                  <Form.Group className="mb-24">
+                    <Form.Label>API Key</Form.Label>
+                    <div className="d-flex gap-2">
+                      <Form.Control
+                        type="text"
+                        value={event.api_key || 'Loading...'}
+                        readOnly
+                        className="font-monospace"
+                      />
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => copyToClipboard(event.api_key, setCopiedApiKey)}
+                      >
+                        <FontAwesomeIcon icon={copiedApiKey ? faCheck : faCopy} />
+                      </Button>
+                    </div>
+                    <Form.Text className="text-muted">
+                      Keep this key secure. Do not expose it in client-side code.
+                    </Form.Text>
+                  </Form.Group>
+
+                  <h6 className="mb-16">API Endpoint</h6>
+                  <div className="bg-light p-3 mb-24 rounded">
+                    <code className="text-dark">
+                      GET {import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-orders?order_id=ORDER_ID
+                    </code>
+                  </div>
+
+                  <h6 className="mb-16">Example cURL Request</h6>
+                  <div className="bg-dark p-3 mb-16 rounded position-relative">
+                    <Button
+                      variant="outline-light"
+                      size="sm"
+                      className="position-absolute top-0 end-0 m-2"
+                      onClick={() => copyToClipboard(
+                        `curl -X GET "${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-orders?order_id=YOUR_ORDER_ID" \\\n  -H "X-API-Key: ${event.api_key || 'YOUR_API_KEY'}"`,
+                        setCopiedCurl
+                      )}
+                    >
+                      <FontAwesomeIcon icon={copiedCurl ? faCheck : faCopy} />
+                    </Button>
+                    <pre className="text-light mb-0" style={{ fontSize: '0.85rem' }}>
+{`curl -X GET "${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-orders?order_id=YOUR_ORDER_ID" \\
+  -H "X-API-Key: ${event.api_key || 'YOUR_API_KEY'}"`}
+                    </pre>
+                  </div>
+
+                  <h6 className="mb-16">Example JavaScript/Fetch Request</h6>
+                  <div className="bg-dark p-3 mb-24 rounded">
+                    <pre className="text-light mb-0" style={{ fontSize: '0.85rem' }}>
+{`const res = await fetch(
+  '${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-orders?order_id=YOUR_ORDER_ID',
+  {
+    headers: {
+      'X-API-Key': '${event.api_key || 'YOUR_API_KEY'}'
+    }
+  }
+);
+const data = await res.json();`}
+                    </pre>
+                  </div>
+
+                  <h6 className="mb-16">Response Format</h6>
+                  <div className="bg-dark p-3 rounded">
+                    <pre className="text-light mb-0" style={{ fontSize: '0.85rem' }}>
+{`{
+  "data": {
+    "id": "order-uuid",
+    "status": "PAID",
+    "total": 100.00,
+    "subtotal": 100.00,
+    "discount_amount": 0.00,
+    "customer_email": "customer@example.com",
+    "customer_name": "John Doe",
+    "customer_first_name": "John",
+    "customer_last_name": "Doe",
+    "customer_phone": "+1234567890",
+    "billing_address": "123 Main St",
+    "billing_city": "New York",
+    "billing_state": "NY",
+    "billing_zip": "10001",
+    "events": {
+      "title": "Event Name",
+      "description": "Event description",
+      "start_date": "2025-01-01T19:00:00Z",
+      "location": "Event Location"
+    },
+    "order_items": [
+      {
+        "quantity": 2,
+        "unit_price": 50.00,
+        "subtotal": 100.00,
+        "ticket_types": {
+          "name": "General Admission",
+          "description": "Standard ticket"
+        }
+      }
+    ],
+    "discount_codes": {
+      "code": "SAVE10",
+      "type": "PERCENT",
+      "value": 10
+    }
+  }
+}`}
+                    </pre>
+                  </div>
+
+                  <div className="alert alert-info mt-24 mb-0">
+                    <strong>Note:</strong> This is a truly public endpoint that requires no authentication other than the X-API-Key header. 
+                    The API key restricts access to only orders for this event. You can safely call this from client-side or server-side code.
+                  </div>
+                </Card.Body>
+              </Card>
             </Tab>
           </Tabs>
         </Col>

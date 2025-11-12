@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Payment function error:", error);
     return new Response(
       JSON.stringify({

@@ -41,14 +41,15 @@ Installs all project dependencies using Yarn.
 
 ### 4. Build Application
 ```yaml
-- name: Build
-  run: |
-    export NODE_ENV=production
-    echo REACT_APP_ENV=production >> .env
-    sudo npm install -g firebase-tools
-    rm -rf .firebase
-    export REACT_APP_ENV=production
-    CI= yarn build
+      - name: Build
+        env:
+          VITE_APP_ENV: production
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_ACCRUPAY_PUBLIC_KEY: ${{ secrets.VITE_ACCRUPAY_PUBLIC_KEY }}
+          # Add other VITE_ environment variables as needed
+        run: yarn build
 ```
 - Sets `NODE_ENV` to production
 - Creates a `.env` file with `REACT_APP_ENV=production`
@@ -75,31 +76,41 @@ Deploys the built application to Firebase Hosting's production target using a se
 
 The workflow requires the following GitHub repository secrets to be configured:
 
-### FIREBASE_TOKEN
+### Firebase Configuration
 
-**Purpose:** Authenticates with Firebase for deployment
+**FIREBASE_SERVICE_ACCOUNT**
+- Purpose: Authenticates with Firebase for deployment
+- How to get: Download service account JSON from Firebase Console → Project Settings → Service Accounts
+- Add the entire JSON content as the secret value
 
-**How to Generate:**
+**FIREBASE_PROJECT_ID**
+- Purpose: Identifies your Firebase project
+- Value: Your Firebase project ID (e.g., `my-project-123`)
 
-1. Install Firebase CLI locally (if not already installed):
-   ```bash
-   npm install -g firebase-tools
-   ```
+### Application Environment Variables
 
-2. Login to Firebase:
-   ```bash
-   firebase login:ci
-   ```
+All environment variables from your `.env` file should be added as GitHub secrets:
 
-3. Copy the generated token
+**Required Secrets:**
+- `VITE_SUPABASE_URL` - Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `VITE_FIREBASE_API_KEY` - Firebase API key
+- `VITE_FIREBASE_AUTH_DOMAIN` - Firebase auth domain
+- `VITE_FIREBASE_PROJECT_ID` - Firebase project ID
+- `VITE_FIREBASE_STORAGE_BUCKET` - Firebase storage bucket
+- `VITE_FIREBASE_MESSAGING_SENDER_ID` - Firebase messaging sender ID
+- `VITE_FIREBASE_APP_ID` - Firebase app ID
+- `VITE_FIREBASE_MEASUREMENT_ID` - Firebase measurement ID
+- `VITE_GOOGLE_MAPS_API_KEY` - Google Maps API key
+- `VITE_ACCRUPAY_PUBLIC_KEY` - Accrupay public key
+- `VITE_APP_BASE_URL` - Base URL (optional)
 
-4. Add the token to GitHub repository secrets:
-   - Go to your GitHub repository
-   - Navigate to **Settings** → **Secrets and variables** → **Actions**
-   - Click **New repository secret**
-   - Name: `FIREBASE_TOKEN`
-   - Value: Paste the token from step 3
-   - Click **Add secret**
+**How to Add Secrets:**
+1. Go to your GitHub repository
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add each secret with its name and value
+5. Click **Add secret**
 
 ## Firebase Hosting Targets
 
@@ -133,13 +144,12 @@ jobs:
       - name: Install
         run: yarn install
       - name: Build
-        run: |
-          export NODE_ENV=development
-          echo REACT_APP_ENV=qa >> .env
-          sudo npm install -g firebase-tools
-          rm -rf .firebase
-          export REACT_APP_ENV=qa
-          CI= yarn build
+        env:
+          VITE_APP_ENV: development
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # Add other VITE_ environment variables as needed
+        run: yarn build
       - name: Deploy
         run: |
           firebase deploy --only hosting:qa --token ${{ secrets.FIREBASE_TOKEN }}
@@ -149,28 +159,32 @@ jobs:
 
 ### Build-time Environment Variables
 
-- **NODE_ENV:** Set to `production` for optimized builds
-- **REACT_APP_ENV:** Application-specific environment identifier
+- **NODE_ENV:** Set to `production` for optimized builds (automatically set by Vite)
+- **VITE_APP_ENV:** Application-specific environment identifier
   - `production` for production builds
-  - `qa` for QA/staging builds
+  - `development` for development/QA builds
+- **VITE_SUPABASE_URL:** Supabase project URL
+- **VITE_SUPABASE_ANON_KEY:** Supabase anonymous key
+- **VITE_FIREBASE_*:** Firebase configuration variables
+- **VITE_GOOGLE_MAPS_API_KEY:** Google Maps API key
+- **VITE_ACCRUPAY_PUBLIC_KEY:** Accrupay public key for payment processing
 
 ### Additional Environment Variables
 
-If your application requires additional environment variables (API keys, endpoints, etc.), add them to the Build step:
+All environment variables in Vite must be prefixed with `VITE_` to be exposed to the application. Add them to the Build step's `env` section:
 
 ```yaml
 - name: Build
-  run: |
-    export NODE_ENV=production
-    echo REACT_APP_ENV=production >> .env
-    echo REACT_APP_API_URL=${{ secrets.API_URL }} >> .env
-    echo REACT_APP_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} >> .env
-    sudo npm install -g firebase-tools
-    rm -rf .firebase
-    CI= yarn build
+  env:
+    VITE_APP_ENV: production
+    VITE_CUSTOM_API_URL: ${{ secrets.VITE_CUSTOM_API_URL }}
+    VITE_CUSTOM_KEY: ${{ secrets.VITE_CUSTOM_KEY }}
+  run: yarn build
 ```
 
 Then add the corresponding secrets in GitHub repository settings.
+
+**Important:** Never commit `.env` files containing sensitive data. Use `.env.example` as a template.
 
 ## Monitoring Deployments
 
@@ -214,22 +228,19 @@ To manually deploy (outside of GitHub Actions):
 
 ### Production
 ```bash
-# Set environment variables
-export NODE_ENV=production
-export REACT_APP_ENV=production
+# Build with production environment
+yarn deploy
 
-# Build
+# Or manually:
+export VITE_APP_ENV=production
 yarn build
-
-# Deploy to production
 firebase deploy --only hosting:prod
 ```
 
 ### QA/Staging
 ```bash
 # Set environment variables
-export NODE_ENV=development
-export REACT_APP_ENV=qa
+export VITE_APP_ENV=development
 
 # Build
 yarn build

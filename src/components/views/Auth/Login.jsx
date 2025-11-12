@@ -13,7 +13,7 @@ const Login = () => {
   const redirectPath = searchParams.get('redirect') || '/admin';
 
   return (
-    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
+    <Container className="d-flex align-items-center justify-content-center bg-grey-800" fluid style={{ minHeight: '100vh' }}>
       <Row className="w-100">
         <Col xs={12} md={6} lg={5} xl={4} className="mx-auto">
           <Card className="shadow">
