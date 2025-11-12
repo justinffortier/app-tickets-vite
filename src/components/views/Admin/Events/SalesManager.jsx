@@ -1,21 +1,31 @@
-import { Card, Table, Badge } from 'react-bootstrap';
+import { Card, Table, Badge, ButtonGroup, Button } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { format } from 'date-fns';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import Loader from '@src/components/global/Loader';
-import { $sales, loadSales } from './_helpers/salesManager.events';
+import { $sales, loadSales, setStatusFilter, exportToCSV } from './_helpers/salesManager.events';
+import { $statusFilter } from './_helpers/salesManager.consts';
 import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
 
 function SalesManager({ eventId }) {
   const { orders } = $sales.value;
   const loading = $sales.value.isLoading;
+  const statusFilter = $statusFilter.value;
 
   useEffectAsync(async () => {
     await loadSales(eventId);
-  }, [eventId]);
+  }, [eventId, statusFilter]);
+
+  const handleFilterChange = async (status) => {
+    setStatusFilter(status);
+    await loadSales(eventId);
+  };
 
   const getStatusBadge = (status) => {
     const variants = {
       PENDING: 'warning',
+      PAID: 'success',
       COMPLETED: 'success',
       CANCELLED: 'danger',
       REFUNDED: 'secondary',
@@ -32,6 +42,10 @@ function SalesManager({ eventId }) {
     }
   };
 
+  const handleExportCSV = () => {
+    exportToCSV(orders, eventId);
+  };
+
   if (loading) return <Loader />;
 
   return (
@@ -39,10 +53,74 @@ function SalesManager({ eventId }) {
       <Card.Body>
         <div className="d-flex justify-content-between align-items-center mb-24">
           <h5 className="mb-0">Sales & Orders</h5>
-          <div className="text-muted small">
-            {orders.length} order{orders.length !== 1 ? 's' : ''}
+          <div className="d-flex align-items-center gap-16">
+            <ButtonGroup>
+              <Button
+                variant={statusFilter === null ? 'primary' : 'outline-primary'}
+                size="sm"
+                onClick={() => handleFilterChange(null)}
+              >
+                All
+              </Button>
+              <Button
+                variant={statusFilter === 'PAID' ? 'primary' : 'outline-primary'}
+                size="sm"
+                onClick={() => handleFilterChange('PAID')}
+              >
+                Paid
+              </Button>
+              <Button
+                variant={statusFilter === 'PENDING' ? 'primary' : 'outline-primary'}
+                size="sm"
+                onClick={() => handleFilterChange('PENDING')}
+              >
+                Pending
+              </Button>
+            </ButtonGroup>
+            {orders.length > 0 && (
+              <Button
+                variant="outline-success"
+                size="sm"
+                onClick={handleExportCSV}
+              >
+                <FontAwesomeIcon icon={faDownload} className="me-2" />
+                Export CSV
+              </Button>
+            )}
+            <div className="text-muted small">
+              {orders.length} order{orders.length !== 1 ? 's' : ''}
+            </div>
           </div>
         </div>
+
+        {orders.length > 0 && (
+          <div className="mb-24 pb-24 border-bottom">
+            <div className="row">
+              <div className="col-md-3">
+                <div className="text-muted small">Total Orders</div>
+                <div className="h4 mb-0">{orders.length}</div>
+              </div>
+              <div className="col-md-3">
+                <div className="text-muted small">Total Tickets Sold</div>
+                <div className="h4 mb-0">
+                  {orders.reduce((sum, order) => sum + (order.order_items?.reduce((itemSum, item) => itemSum + item.quantity, 0) || 0), 0)}
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="text-muted small">Total Revenue</div>
+                <div className="h4 mb-0">
+                  ${orders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0).toFixed(2)}
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="text-muted small">Total Discounts</div>
+                <div className="h4 mb-0 text-success">
+                  ${orders.reduce((sum, order) => sum + parseFloat(order.discount_amount || 0), 0).toFixed(2)}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {orders.length === 0 ? (
           <div className="text-center py-5 text-muted">
@@ -117,35 +195,6 @@ function SalesManager({ eventId }) {
               ))}
             </tbody>
           </Table>
-        )}
-
-        {orders.length > 0 && (
-          <div className="mt-24 pt-24 border-top">
-            <div className="row">
-              <div className="col-md-3">
-                <div className="text-muted small">Total Orders</div>
-                <div className="h4 mb-0">{orders.length}</div>
-              </div>
-              <div className="col-md-3">
-                <div className="text-muted small">Total Tickets Sold</div>
-                <div className="h4 mb-0">
-                  {orders.reduce((sum, order) => sum + (order.order_items?.reduce((itemSum, item) => itemSum + item.quantity, 0) || 0), 0)}
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="text-muted small">Total Revenue</div>
-                <div className="h4 mb-0">
-                  ${orders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0).toFixed(2)}
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="text-muted small">Total Discounts</div>
-                <div className="h4 mb-0 text-success">
-                  ${orders.reduce((sum, order) => sum + parseFloat(order.discount_amount || 0), 0).toFixed(2)}
-                </div>
-              </div>
-            </div>
-          </div>
         )}
       </Card.Body>
     </Card>

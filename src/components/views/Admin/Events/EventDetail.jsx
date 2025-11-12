@@ -71,7 +71,7 @@ function EventDetail() {
       </Row>
 
       <Row>
-        <Col lg={8}>
+        <Col lg={12}>
           <Tabs defaultActiveKey="basic" className="mb-24">
             <Tab eventKey="basic" title="Basic Info">
               <Card>
@@ -408,30 +408,6 @@ const data = await res.json();`}
               </Card>
             </Tab>
           </Tabs>
-        </Col>
-
-        <Col lg={4}>
-          <Card>
-            <Card.Body>
-              <h5 className="mb-24">Quick Stats</h5>
-              <div className="mb-24">
-                <div className="text-muted small">Total Tickets</div>
-                <div className="h4 mb-0">{tickets.length}</div>
-              </div>
-              <div className="mb-24">
-                <div className="text-muted small">Tickets Sold</div>
-                <div className="h4 mb-0">
-                  {tickets.reduce((sum, t) => sum + (t.sold || 0), 0)}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted small">Revenue</div>
-                <div className="h4 mb-0">
-                  ${tickets.reduce((sum, t) => sum + (t.sold || 0) * parseFloat(t.price || 0), 0).toFixed(2)}
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
         </Col>
       </Row>
     </Container>

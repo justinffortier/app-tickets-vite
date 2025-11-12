@@ -16,14 +16,7 @@ function Dashboard() {
   return (
     <Container fluid className="py-4">
       <Row className="mb-32">
-        <Col>
-          <h2>Dashboard</h2>
-          <p className="text-muted">Headless Ticketing Platform</p>
-        </Col>
-      </Row>
-
-      <Row className="mb-32">
-        <Col md={3}>
+        <Col md={6} className="mb-4">
           <Card className="text-center">
             <Card.Body>
               <FontAwesomeIcon icon={faCalendar} size="2x" className="text-primary mb-24" />
@@ -32,7 +25,7 @@ function Dashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={6} className="mb-4">
           <Card className="text-center">
             <Card.Body>
               <FontAwesomeIcon icon={faFileAlt} size="2x" className="text-success mb-24" />
@@ -41,7 +34,7 @@ function Dashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={6} className="mb-4">
           <Card className="text-center">
             <Card.Body>
               <FontAwesomeIcon icon={faShoppingCart} size="2x" className="text-info mb-24" />
@@ -50,7 +43,7 @@ function Dashboard() {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={6} className="mb-4">
           <Card className="text-center">
             <Card.Body>
               <FontAwesomeIcon icon={faTicket} size="2x" className="text-warning mb-24" />

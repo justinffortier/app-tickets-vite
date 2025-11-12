@@ -30,26 +30,26 @@ const AdminNav = () => {
   };
 
   return (
-    <Navbar bg="grey-900" expand="lg" className="mb-32 border-bottom">
+    <Navbar bg="grey-900" expand="lg" className="mb-32 shadow-sm sticky-top">
       <Container fluid>
         <Navbar.Brand as={Link} to="/admin">
-          <img src="/logo-white.svg" alt="Logo" className="me-2" />
+          <img src="/logo.svg" alt="Logo" className="me-2" width={150} />
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="admin-navbar-nav" />
         <Navbar.Collapse id="admin-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link as={Link} to="/admin">
+          <Nav className="ms-auto">
+            <Nav.Link as={Link} to="/admin" className="me-5">
               Dashboard
             </Nav.Link>
             <Nav.Link as={Link} to="/admin/events">
               Events
             </Nav.Link>
           </Nav>
-          <Nav>
+          <Nav className="ms-4">
             <Dropdown align="end">
-              <Dropdown.Toggle variant="outline-secondary" id="user-dropdown">
+              <Dropdown.Toggle variant="link" id="user-dropdown" className="text-light text-decoration-none">
                 <FontAwesomeIcon icon={faUser} className="me-2" />
-                {$user.value?.email || 'Account'}
+                <small>{$user.value?.email || 'Account'}</small>
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 <Dropdown.Item onClick={handleLogout}>
