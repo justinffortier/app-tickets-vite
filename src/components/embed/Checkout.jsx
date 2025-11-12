@@ -5,10 +5,8 @@ import { AccruPay } from 'accru-pay-react';
 import { $checkout } from '@src/signals';
 import Loader from '@src/components/global/Loader';
 import CardLoader from '@src/components/global/CardLoader';
-import { useState } from 'react';
-import paymentsAPI from '@src/api/payments.api';
 import * as resolvers from './_helpers/checkout.resolvers';
-import { providerConfigError, sessionInitError } from './_helpers/checkout.consts';
+import { sessionInitError } from './_helpers/checkout.consts';
 import CreditCardForm from './_components/CreditCardForm';
 import OrderSummary from './_components/OrderSummary';
 import PaymentStatus from './_components/PaymentStatus';
@@ -22,7 +20,12 @@ function Checkout() {
   const { order, error, paymentStatus, paymentSession } = $checkout.value;
   const { isLoading } = $checkout.value;
   const theme = $checkout.value.form?.theme || 'light';
-  const [providers, setProviders] = useState(null);
+
+  // Format preSessionData from payment session into providers format
+  const providers = paymentSession?.preSessionData ? [{
+    name: PAYMENT_PROCESSOR,
+    config: paymentSession.preSessionData
+  }] : null;
 
   useEffectAsync(() => {
     const confirmationUrlOverride = searchParams.get('confirmationUrl');
@@ -38,20 +41,6 @@ function Checkout() {
       $checkout.update({ isEmbedded: true });
     }
   }, [searchParams]);
-
-  useEffectAsync(async () => {
-    try {
-      providerConfigError.value = null;
-      const providersData = await paymentsAPI.getProviders();
-      setProviders(providersData);
-    } catch (err) {
-      // Payment provider configuration could not be loaded
-      const errorMsg = 'Unable to load payment provider configuration. Please try refreshing the page.';
-      providerConfigError.value = errorMsg;
-      $checkout.update({ error: errorMsg });
-      // Don't set fallback providers - we need valid config to process payments
-    }
-  }, []);
 
   useEffectAsync(async () => {
     if (orderId) {
@@ -107,24 +96,16 @@ function Checkout() {
 
   return (
     <Container className={`py-5 ${theme}`} style={{ maxWidth: '800px' }}>
-      {/* Show provider configuration errors */}
-      {providerConfigError.value && (
-        <Alert variant="danger" className="mb-24">
-          <Alert.Heading>Configuration Error</Alert.Heading>
-          <p>{providerConfigError.value}</p>
-        </Alert>
-      )}
-
       {/* Show session initialization errors */}
-      {sessionInitError.value && !providerConfigError.value && (
+      {sessionInitError.value && (
         <Alert variant="danger" className="mb-24">
           <Alert.Heading>Payment Session Error</Alert.Heading>
           <p>{sessionInitError.value}</p>
         </Alert>
       )}
 
-      {/* Show general errors that aren't provider or session related */}
-      {error && !providerConfigError.value && !sessionInitError.value && (
+      {/* Show general errors that aren't session related */}
+      {error && !sessionInitError.value && (
         <Alert variant="danger" className="mb-24">{error}</Alert>
       )}
 
@@ -134,13 +115,13 @@ function Checkout() {
         <Col md={12}>
           <OrderSummary order={order} />
 
-          {/* Show loader when providers or payment session are loading (and no errors) */}
-          {order && order.status === 'PENDING' && !paymentStatus && !providerConfigError.value && !sessionInitError.value && (!providers || !paymentSession) && (
+          {/* Show loader when payment session is loading (and no errors) */}
+          {order && order.status === 'PENDING' && !paymentStatus && !sessionInitError.value && !paymentSession && (
             <CardLoader message="Initializing payment form..." />
           )}
 
           {/* Show payment form when everything is ready and no critical errors */}
-          {order && providers && paymentSession && !paymentStatus && !providerConfigError.value && !sessionInitError.value && (
+          {order && providers && paymentSession && !paymentStatus && !sessionInitError.value && (
             <Card>
               <Card.Body>
                 <Row>

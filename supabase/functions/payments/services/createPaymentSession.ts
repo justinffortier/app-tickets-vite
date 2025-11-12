@@ -4,10 +4,37 @@
 import { TRANSACTION_PROVIDER, CURRENCY, COUNTRY_ISO_2 } from "npm:@accrupay/node@0.14.0";
 import type { PaymentSessionResult } from "../types/index.ts";
 
+/**
+ * Selects the appropriate AccruPay client based on event configuration
+ */
+function selectAccruPayClient(
+  clients: { production: any; sandbox: any },
+  eventEnvironment: string | null,
+  envTag: string
+): any {
+  // If event has explicit environment setting, use that
+  if (eventEnvironment === "production") {
+    if (!clients.production) {
+      console.warn("Production client requested but not available, falling back to sandbox");
+      return clients.sandbox;
+    }
+    return clients.production;
+  }
+
+  if (eventEnvironment === "sandbox") {
+    return clients.sandbox;
+  }
+
+  // Otherwise, use global ENV_TAG
+  const defaultEnv = envTag === "prod" ? "production" : "sandbox";
+  return clients[defaultEnv] || clients.sandbox;
+}
+
 export async function createPaymentSession(
   orderId: string,
   supabaseClient: any,
-  accruPay: any
+  accruPayClients: { production: any; sandbox: any },
+  envTag: string
 ): Promise<PaymentSessionResult> {
   // Get order details - explicit select to avoid relationship ambiguity
   const { data: order, error: orderError } = await supabaseClient
@@ -36,7 +63,7 @@ export async function createPaymentSession(
       billing_zip,
       created_at,
       updated_at,
-      events!inner(title),
+      events!inner(title, accrupay_environment),
       order_items(
         id,
         order_id,
@@ -52,6 +79,17 @@ export async function createPaymentSession(
 
   if (orderError) throw orderError;
   if (!order) throw new Error("Order not found");
+
+  // Select the appropriate AccruPay client based on event configuration
+  const accruPay = selectAccruPayClient(
+    accruPayClients,
+    order.events?.accrupay_environment || null,
+    envTag
+  );
+
+  const selectedEnv = order.events?.accrupay_environment || "default";
+  console.log(`Using AccruPay environment: ${selectedEnv} (ENV_TAG: ${envTag})`);
+
 
   if (order.status !== "PENDING") {
     throw new Error(`Order status is ${order.status}, cannot create payment session`);

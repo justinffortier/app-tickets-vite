@@ -7,8 +7,13 @@ export async function handleWebhook(
   webhookData: any,
   signature: string,
   supabaseClient: any,
-  accruPay: any
+  accruPayClients: { production: any; sandbox: any },
+  envTag: string
 ): Promise<WebhookResult> {
+  // Use default environment based on ENV_TAG for webhook verification
+  const defaultEnv = envTag === "prod" ? "production" : "sandbox";
+  const accruPay = accruPayClients[defaultEnv] || accruPayClients.sandbox;
+  
   // Verify webhook signature
   const webhookSecret = Deno.env.get("ACCRUPAY_WEBHOOK_SECRET");
 

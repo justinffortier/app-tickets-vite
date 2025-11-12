@@ -5,9 +5,14 @@ import { TRANSACTION_PROVIDER } from "npm:@accrupay/node@0.14.0";
 import type { GetProvidersResult } from "../types/index.ts";
 
 export async function getProviders(
-  accruPay: any
+  accruPayClients: { production: any; sandbox: any },
+  envTag: string
 ): Promise<GetProvidersResult> {
   try {
+    // Use default environment based on ENV_TAG for getProviders
+    const defaultEnv = envTag === "prod" ? "production" : "sandbox";
+    const accruPay = accruPayClients[defaultEnv] || accruPayClients.sandbox;
+    
     const preSessionData = await accruPay.transactions.getClientPaymentPreSessionData({
       transactionProvider: TRANSACTION_PROVIDER.NUVEI,
     });

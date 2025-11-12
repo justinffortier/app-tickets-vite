@@ -17,6 +17,9 @@ export const $eventForm = Signal({
   status: 'DRAFT',
   customerio_app_api_key: '',
   customerio_transactional_template_id: '',
+  customerio_site_id: '',
+  customerio_track_api_key: '',
+  accrupay_environment: '',
 });
 
 export const loadEvent = async (id) => {
@@ -37,6 +40,9 @@ export const loadEvent = async (id) => {
       status: data.status || 'DRAFT',
       customerio_app_api_key: data.customerio_app_api_key || '',
       customerio_transactional_template_id: data.customerio_transactional_template_id || '',
+      customerio_site_id: data.customerio_site_id || '',
+      customerio_track_api_key: data.customerio_track_api_key || '',
+      accrupay_environment: data.accrupay_environment || '',
     });
   } catch (error) {
     showToast('Error loading event', 'error');
@@ -76,6 +82,9 @@ export const handleSubmit = async (e, id, navigate) => {
       status: formData.status,
       customerio_app_api_key: formData.customerio_app_api_key || null,
       customerio_transactional_template_id: formData.customerio_transactional_template_id || null,
+      customerio_site_id: formData.customerio_site_id || null,
+      customerio_track_api_key: formData.customerio_track_api_key || null,
+      accrupay_environment: formData.accrupay_environment || null,
     };
 
     if (id) {

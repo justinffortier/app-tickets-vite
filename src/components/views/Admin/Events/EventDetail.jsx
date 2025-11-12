@@ -191,7 +191,7 @@ function EventDetail() {
                 <Card.Body>
                   <h5 className="mb-24">Customer.io Configuration</h5>
                   <p className="text-muted mb-24">
-                    Configure Customer.io credentials to enable transactional email notifications 
+                    Configure Customer.io credentials to enable transactional email notifications
                     for ticket purchases. These emails will be sent automatically after successful payment.
                   </p>
                   <Form onSubmit={handleEventSubmit}>
@@ -220,6 +220,57 @@ function EventDetail() {
                       />
                       <Form.Text className="text-muted">
                         The ID or name of your Customer.io transactional email template
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-24">
+                      <Form.Label>Site ID</Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="customerio_site_id"
+                        value={formData.customerio_site_id}
+                        onChange={handleChange}
+                        placeholder="Enter your Customer.io Site ID"
+                      />
+                      <Form.Text className="text-muted">
+                        Your Customer.io Site ID for Track API. Find this in Workspace Settings → API Credentials → Tracking API Keys.
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-24">
+                      <Form.Label>Track API Key</Form.Label>
+                      <Form.Control
+                        type="password"
+                        name="customerio_track_api_key"
+                        value={formData.customerio_track_api_key}
+                        onChange={handleChange}
+                        placeholder="Enter your Customer.io Track API Key"
+                      />
+                      <Form.Text className="text-muted">
+                        Your Customer.io Track API Key (used with Site ID for identifying customers). Keep this secure.
+                      </Form.Text>
+                    </Form.Group>
+
+                    <hr className="my-32" />
+
+                    <h5 className="mb-24">AccruPay Configuration</h5>
+                    <p className="text-muted mb-24">
+                      Configure which AccruPay environment to use for payment processing for this event.
+                    </p>
+
+                    <Form.Group className="mb-24">
+                      <Form.Label>Payment Environment</Form.Label>
+                      <Form.Select
+                        name="accrupay_environment"
+                        value={formData.accrupay_environment}
+                        onChange={handleChange}
+                      >
+                        <option value="">Use Default (Based on ENV_TAG)</option>
+                        <option value="production">Production</option>
+                        <option value="sandbox">Sandbox/Integration</option>
+                      </Form.Select>
+                      <Form.Text className="text-muted">
+                        Select which AccruPay environment to use. "Use Default" will use the global ENV_TAG setting (currently {import.meta.env.VITE_ENV_TAG || 'development'} mode). Override this to force production or sandbox mode for this specific event.
                       </Form.Text>
                     </Form.Group>
 
@@ -277,13 +328,13 @@ function EventDetail() {
                       className="position-absolute top-0 end-0 m-2"
                       onClick={() => copyToClipboard(
                         `curl -X GET "${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-orders?order_id=YOUR_ORDER_ID" \\\n  -H "X-API-Key: ${event.api_key || 'YOUR_API_KEY'}"`,
-                        setCopiedCurl
+                        setCopiedCurl,
                       )}
                     >
                       <FontAwesomeIcon icon={copiedCurl ? faCheck : faCopy} />
                     </Button>
                     <pre className="text-light mb-0" style={{ fontSize: '0.85rem' }}>
-{`curl -X GET "${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-orders?order_id=YOUR_ORDER_ID" \\
+                      {`curl -X GET "${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-orders?order_id=YOUR_ORDER_ID" \\
   -H "X-API-Key: ${event.api_key || 'YOUR_API_KEY'}"`}
                     </pre>
                   </div>
@@ -291,7 +342,7 @@ function EventDetail() {
                   <h6 className="mb-16">Example JavaScript/Fetch Request</h6>
                   <div className="bg-dark p-3 mb-24 rounded">
                     <pre className="text-light mb-0" style={{ fontSize: '0.85rem' }}>
-{`const res = await fetch(
+                      {`const res = await fetch(
   '${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-orders?order_id=YOUR_ORDER_ID',
   {
     headers: {
@@ -306,7 +357,7 @@ const data = await res.json();`}
                   <h6 className="mb-16">Response Format</h6>
                   <div className="bg-dark p-3 rounded">
                     <pre className="text-light mb-0" style={{ fontSize: '0.85rem' }}>
-{`{
+                      {`{
   "data": {
     "id": "order-uuid",
     "status": "PAID",
@@ -350,7 +401,7 @@ const data = await res.json();`}
                   </div>
 
                   <div className="alert alert-info mt-24 mb-0">
-                    <strong>Note:</strong> This is a truly public endpoint that requires no authentication other than the X-API-Key header. 
+                    <strong>Note:</strong> This is a truly public endpoint that requires no authentication other than the X-API-Key header.
                     The API key restricts access to only orders for this event. You can safely call this from client-side or server-side code.
                   </div>
                 </Card.Body>

@@ -11,11 +11,20 @@ export interface CustomerIOConfig {
   transactionalTemplateId: string;
 }
 
+export interface CustomerIOTrackConfig {
+  siteId: string;
+  trackApiKey: string;
+}
+
 export interface OrderEmailData {
   name: string;
   email: string;
   orderId: string;
   purchasedAt: string;
+}
+
+export interface CustomerAttributes {
+  [key: string]: any;
 }
 
 export interface CustomerIOResponse {
@@ -98,6 +107,77 @@ export async function sendTransactionalEmail(
     return {
       success: false,
       error: `Failed to send email: ${error.message}`,
+    };
+  }
+}
+
+/**
+ * Identify a customer in Customer.io using Track API
+ * @param config Customer.io Track API configuration (Site ID, Track API Key)
+ * @param email Customer email address (used as identifier)
+ * @param attributes Customer attributes to set or update
+ * @returns Promise with success status and message
+ */
+export async function identifyCustomer(
+  config: CustomerIOTrackConfig,
+  email: string,
+  attributes: CustomerAttributes
+): Promise<CustomerIOResponse> {
+  // Validate configuration
+  if (!config.siteId || !config.trackApiKey) {
+    return {
+      success: false,
+      error: "Customer.io Track API configuration incomplete. Missing Site ID or Track API Key.",
+    };
+  }
+
+  // Validate email
+  if (!email) {
+    return {
+      success: false,
+      error: "Customer email is required for identify call.",
+    };
+  }
+
+  try {
+    // Encode credentials for Basic Auth
+    const credentials = btoa(`${config.siteId}:${config.trackApiKey}`);
+
+    // Prepare the payload for Customer.io Track API
+    const payload = {
+      email: email,
+      ...attributes,
+    };
+
+    // Make the API request to Customer.io Track API
+    const response = await fetch(`https://track.customer.io/api/v1/customers/${encodeURIComponent(email)}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Basic ${credentials}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    // Check if the request was successful (Track API returns 200 for success)
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn(`Customer.io Track API error (${response.status}):`, errorText);
+      return {
+        success: false,
+        error: `Customer.io Track API returned ${response.status}: ${errorText}`,
+      };
+    }
+
+    return {
+      success: true,
+      message: "Customer identified successfully in Customer.io",
+    };
+  } catch (error: any) {
+    console.error("Customer.io identify error:", error);
+    return {
+      success: false,
+      error: `Failed to identify customer: ${error.message}`,
     };
   }
 }

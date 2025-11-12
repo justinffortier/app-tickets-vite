@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { initializeSupabaseClient, initializeAccruPayClient, getEnvironment } from "./utils/clients.ts";
+import { initializeSupabaseClient, initializeAccruPayClients, getEnvironment } from "./utils/clients.ts";
 import { createPaymentSession } from "./services/createPaymentSession.ts";
 import { confirmPayment } from "./services/confirmPayment.ts";
 import { handleWebhook } from "./services/handleWebhook.ts";
@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
   try {
     // Initialize clients
     const supabaseClient = initializeSupabaseClient();
-    const accruPay = initializeAccruPayClient();
+    const accruPayClients = initializeAccruPayClients();
     const envTag = getEnvironment();
 
     // Parse request body
@@ -37,18 +37,18 @@ Deno.serve(async (req) => {
     // Route to appropriate service based on action
     switch (action) {
       case "createPaymentSession": {
-        result = await createPaymentSession(orderId, supabaseClient, accruPay);
+        result = await createPaymentSession(orderId, supabaseClient, accruPayClients, envTag);
         break;
       }
 
       case "confirmPayment": {
-        result = await confirmPayment(orderId, supabaseClient, accruPay, envTag);
+        result = await confirmPayment(orderId, supabaseClient, accruPayClients, envTag);
         break;
       }
 
       case "handleWebhook": {
         const signature = req.headers.get("x-accrupay-signature") || "";
-        result = await handleWebhook(webhookData, signature, supabaseClient, accruPay);
+        result = await handleWebhook(webhookData, signature, supabaseClient, accruPayClients, envTag);
         break;
       }
 
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
       }
 
       case "getProviders": {
-        result = await getProviders(accruPay);
+        result = await getProviders(accruPayClients, envTag);
         break;
       }
 

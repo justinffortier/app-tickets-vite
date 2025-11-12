@@ -53,6 +53,9 @@ export const handlePaymentSuccess = async (paymentData) => {
     // Only proceed with redirect logic if confirmPayment succeeded
     let redirectUrl;
 
+    console.log('confirmationUrlOverride', confirmationUrlOverride);
+    console.log('form.order_confirmation_url', form?.order_confirmation_url);
+
     if (confirmationUrlOverride) {
       // Use query parameter override
       redirectUrl = buildConfirmationUrl(confirmationUrlOverride, order);
