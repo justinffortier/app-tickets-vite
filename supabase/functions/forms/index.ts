@@ -89,7 +89,7 @@ Deno.serve(async (req: Request) => {
             const validTicketIds = tickets.map((t) => t.id);
             const invalidCount = data.available_ticket_ids.length - validTicketIds.length;
             data.available_ticket_ids = validTicketIds;
-            
+
             // Log warning but don't throw error - just use valid tickets
             console.warn(
               `Filtered out ${invalidCount} invalid ticket ID(s) that don't belong to event ${data.event_id}`
@@ -119,7 +119,7 @@ Deno.serve(async (req: Request) => {
             .select("event_id")
             .eq("id", id)
             .maybeSingle();
-          
+
           if (formError) throw formError;
           if (!existingForm) {
             throw new Error("Form not found");
@@ -145,7 +145,7 @@ Deno.serve(async (req: Request) => {
             const validTicketIds = tickets.map((t) => t.id);
             const invalidCount = data.available_ticket_ids.length - validTicketIds.length;
             data.available_ticket_ids = validTicketIds;
-            
+
             // Log warning but don't throw error - just use valid tickets
             console.warn(
               `Filtered out ${invalidCount} invalid ticket ID(s) that don't belong to event ${eventId}`
