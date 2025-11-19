@@ -40,37 +40,38 @@ function EventsList() {
       );
     },
     actions: () => (
-      <Dropdown>
-        <Dropdown.Toggle
-          variant="link"
-          size="sm"
-          className="text-white"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <FontAwesomeIcon icon={faEllipsisV} />
-        </Dropdown.Toggle>
+      <span onClick={(e) => e.stopPropagation()}>
+        <Dropdown>
+          <Dropdown.Toggle
+            variant="link"
+            size="sm"
+            className="text-white"
+          >
+            <FontAwesomeIcon icon={faEllipsisV} />
+          </Dropdown.Toggle>
 
-        <Dropdown.Menu>
-          <Dropdown.Item
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/admin/events/${event.id}`);
-            }}
-          >
-            Manage Event
-          </Dropdown.Item>
-          <Dropdown.Item onClick={(e) => handlePublish(e, event.id, event.status)}>
-            {event.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
-          </Dropdown.Item>
-          <Dropdown.Divider />
-          <Dropdown.Item
-            className="text-danger"
-            onClick={(e) => handleDelete(e, event.id)}
-          >
-            Delete
-          </Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown>
+          <Dropdown.Menu>
+            <Dropdown.Item
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/admin/events/${event.id}`);
+              }}
+            >
+              Manage Event
+            </Dropdown.Item>
+            <Dropdown.Item onClick={(e) => handlePublish(e, event.id, event.status)}>
+              {event.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item
+              className="text-danger"
+              onClick={(e) => handleDelete(e, event.id)}
+            >
+              Delete
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+      </span>
     ),
   }));
 

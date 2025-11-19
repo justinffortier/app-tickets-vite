@@ -284,6 +284,48 @@ Deno.serve(async (req: Request) => {
         break;
       }
 
+      case "delete": {
+        // First check if order exists and get its items
+        const { data: order, error: fetchError } = await supabaseClient
+          .from("orders")
+          .select("id, status, payment_intent_id")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (fetchError) throw fetchError;
+        if (!order) {
+          throw new Error("Order not found");
+        }
+
+        // If order was PAID, decrement sold counts before deleting
+        if (order.status === "PAID") {
+          const { data: orderItems } = await supabaseClient
+            .from("order_items")
+            .select("ticket_type_id, quantity")
+            .eq("order_id", id);
+
+          if (orderItems) {
+            for (const item of orderItems) {
+              await supabaseClient.rpc("decrement_ticket_sold", {
+                ticket_id: item.ticket_type_id,
+                amount: item.quantity,
+              });
+            }
+          }
+        }
+
+        // Delete the order (order_items will be deleted automatically via CASCADE)
+        const { error: deleteError } = await supabaseClient
+          .from("orders")
+          .delete()
+          .eq("id", id);
+
+        if (deleteError) throw deleteError;
+
+        result = { data: { success: true, deletedOrder: order } };
+        break;
+      }
+
       default:
         throw new Error(`Unknown action: ${action}`);
     }

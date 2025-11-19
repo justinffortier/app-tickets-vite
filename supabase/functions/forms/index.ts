@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
           throw new Error("event_id is required");
         }
 
-        // Validate ticket IDs if provided
+        // Validate and filter ticket IDs if provided
         if (data.available_ticket_ids && data.available_ticket_ids.length > 0) {
           const { data: tickets, error: ticketError } = await supabaseClient
             .from("ticket_types")
@@ -81,8 +81,19 @@ Deno.serve(async (req: Request) => {
 
           if (ticketError) throw ticketError;
 
-          if (!tickets || tickets.length !== data.available_ticket_ids.length) {
-            throw new Error("Invalid ticket IDs: some tickets do not belong to this event");
+          if (!tickets || tickets.length === 0) {
+            // No valid tickets found - clear the array
+            data.available_ticket_ids = [];
+          } else if (tickets.length !== data.available_ticket_ids.length) {
+            // Some tickets are invalid - filter to only valid ones
+            const validTicketIds = tickets.map((t) => t.id);
+            const invalidCount = data.available_ticket_ids.length - validTicketIds.length;
+            data.available_ticket_ids = validTicketIds;
+            
+            // Log warning but don't throw error - just use valid tickets
+            console.warn(
+              `Filtered out ${invalidCount} invalid ticket ID(s) that don't belong to event ${data.event_id}`
+            );
           }
         }
 
@@ -100,18 +111,45 @@ Deno.serve(async (req: Request) => {
       }
 
       case "update": {
-        // Validate ticket IDs if provided
-        if (data.available_ticket_ids && data.event_id) {
+        // Get the form's event_id if not provided in update data
+        let eventId = data.event_id;
+        if (!eventId) {
+          const { data: existingForm, error: formError } = await supabaseClient
+            .from("forms")
+            .select("event_id")
+            .eq("id", id)
+            .maybeSingle();
+          
+          if (formError) throw formError;
+          if (!existingForm) {
+            throw new Error("Form not found");
+          }
+          eventId = existingForm.event_id;
+        }
+
+        // Validate and filter ticket IDs if provided
+        if (data.available_ticket_ids && data.available_ticket_ids.length > 0 && eventId) {
           const { data: tickets, error: ticketError } = await supabaseClient
             .from("ticket_types")
             .select("id")
-            .eq("event_id", data.event_id)
+            .eq("event_id", eventId)
             .in("id", data.available_ticket_ids);
 
           if (ticketError) throw ticketError;
 
-          if (!tickets || tickets.length !== data.available_ticket_ids.length) {
-            throw new Error("Invalid ticket IDs: some tickets do not belong to this event");
+          if (!tickets || tickets.length === 0) {
+            // No valid tickets found - clear the array
+            data.available_ticket_ids = [];
+          } else if (tickets.length !== data.available_ticket_ids.length) {
+            // Some tickets are invalid - filter to only valid ones
+            const validTicketIds = tickets.map((t) => t.id);
+            const invalidCount = data.available_ticket_ids.length - validTicketIds.length;
+            data.available_ticket_ids = validTicketIds;
+            
+            // Log warning but don't throw error - just use valid tickets
+            console.warn(
+              `Filtered out ${invalidCount} invalid ticket ID(s) that don't belong to event ${eventId}`
+            );
           }
         }
 

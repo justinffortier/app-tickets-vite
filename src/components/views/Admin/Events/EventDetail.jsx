@@ -72,7 +72,7 @@ function EventDetail() {
 
       <Row>
         <Col lg={12}>
-          <Tabs defaultActiveKey="basic" className="mb-24">
+          <Tabs defaultActiveKey="basic" className="mb-24" variant="pills">
             <Tab eventKey="basic" title="Basic Info">
               <Card>
                 <Card.Body>

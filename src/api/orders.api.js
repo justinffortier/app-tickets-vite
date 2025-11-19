@@ -36,6 +36,11 @@ export const ordersAPI = {
     const result = await edgeFunctionHelpers.orders.calculateTotal(items, discountCodeId);
     return result;
   },
+
+  async delete(id) {
+    const result = await edgeFunctionHelpers.orders.delete(id);
+    return result.data;
+  },
 };
 
 export default ordersAPI;

@@ -250,6 +250,10 @@ export const edgeFunctionHelpers = {
       method: 'POST',
       body: { action: 'calculateTotal', items, discountCodeId },
     }),
+    delete: (id) => callEdgeFunction('orders', {
+      method: 'POST',
+      body: { action: 'delete', id },
+    }),
   },
 
   forms: {

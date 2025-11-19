@@ -29,6 +29,7 @@
     "@fyclabs/tools-fyc-react": "^0.0.3",
     "@react-google-maps/api": "^2.20.7",
     "@supabase/supabase-js": "^2.76.1",
+    "@userback/widget": "^0.3.12",
     "accru-pay-react": "https://github.com/accruteam/sdk-accrupay-react.git#0.1.0-alpha.4",
     "bootstrap": "^5.2.3",
     "bootstrap-sass": "^3.4.1",

@@ -3,23 +3,32 @@ import { Badge, Container } from 'react-bootstrap';
 import { Outlet } from 'react-router-dom';
 import { useEffectAsync } from '@fyclabs/tools-fyc-react/utils';
 import { auth } from '@src/utils/firebase';
-import { $global } from '@src/signals';
+import { $global, $user } from '@src/signals';
 import { getCurrentAuthenticatedUser, handleFirebaseLogin, handleFirebaseLogout } from '@src/utils/auth';
+import { initializeUserback, updateUserbackUser, destroyUserback } from '@src/utils/userback';
 import Loadable from '../Loadable';
 
 const AppWrapper = () => {
   const { breakPoint } = useWindowSize();
 
   useEffectAsync(async () => {
+    // Initialize Userback on mount
+    await initializeUserback();
+
     const unsubscribe = auth.onAuthStateChanged(async (fbUser) => {
       $global.update({
         isLoading: true,
       });
       if (fbUser) {
         await handleFirebaseLogin(fbUser);
-        await getCurrentAuthenticatedUser();
+        const user = await getCurrentAuthenticatedUser();
+        // Update Userback with user data after authentication
+        if (user) {
+          await updateUserbackUser(user);
+        }
       } else if ($global.value.isSignedIn) {
         await handleFirebaseLogout();
+        await updateUserbackUser(null);
       }
 
       $global.update({
@@ -27,7 +36,10 @@ const AppWrapper = () => {
       });
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      destroyUserback();
+    };
   }, []);
 
   return (

@@ -1,7 +1,7 @@
 import { Signal } from '@fyclabs/tools-fyc-react/signals';
 import ordersAPI from '@src/api/orders.api';
 import { showToast } from '@src/components/global/Alert/_helpers/alert.events';
-import { $statusFilter } from './salesManager.consts';
+import { $statusFilter, $deleteOrder } from './salesManager.consts';
 import { format } from 'date-fns';
 
 export const $sales = Signal({
@@ -120,5 +120,24 @@ export const exportToCSV = (orders, eventId) => {
   } catch (error) {
     console.error('Error exporting CSV:', error);
     showToast('Error exporting sales data', 'error');
+  }
+};
+
+export const showDeleteConfirmation = (order) => {
+  $deleteOrder.value = order;
+};
+
+export const hideDeleteConfirmation = () => {
+  $deleteOrder.value = null;
+};
+
+export const deleteOrder = async (orderId, eventId) => {
+  try {
+    await ordersAPI.delete(orderId);
+    showToast('Order deleted successfully', 'success');
+    hideDeleteConfirmation();
+    await loadSales(eventId);
+  } catch (error) {
+    showToast('Error deleting order', 'error');
   }
 };
